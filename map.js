@@ -3,7 +3,10 @@
 // =================================================================
 // This should contain your valid token from cesium.com/ion/tokens
 Cesium.Ion.defaultAccessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiI2NTM4ODEwOS1kY2YzLTQ1NTQtYjdkNi00MjVhZDhiOWI5MjQiLCJpZCI6MzY1NjQ0LCJpYXQiOjE3NjQ2MjgwMTN9.VbtictK8wX9wRujhyof4bik51dNsNYPfSRqqatIrfFY'; // MAKE SURE YOUR TOKEN IS PASTED HERE
-
+// =================================================================
+// Step 1: Get Your Cesium ion Access Token
+// =================================================================
+// This should contain your valid token from cesium.com/ion/tokens
 // =================================================================
 // Step 2: Initialize the Cesium Viewer
 // =================================================================
@@ -41,7 +44,7 @@ const riskZoneData = [
 const riskZoneColors = [
   Cesium.Color.fromBytes(255, 235, 59, 100), // Yellow for 2030
   Cesium.Color.fromBytes(255, 152, 0, 100),  // Orange for 2040
-  Cesim.Color.fromBytes(244, 67, 54, 100)   // Red for 2050
+  Cesium.Color.fromBytes(244, 67, 54, 100)   // Red for 2050
 ];
 
 const riskZoneLayers = {};
@@ -54,8 +57,8 @@ riskZoneData.forEach(async (zone, index) => {
       strokeWidth: 2
     });
     dataSource.name = `Risk Zone ${zone.year}`;
-    riskZoneLayers[zone.year] = dataSource; // Store the layer using the correct year
-    dataSource.show = false; // Initially hide the layer
+    riskZoneLayers[zone.year] = dataSource;
+    dataSource.show = false;
     await viewer.dataSources.add(dataSource);
   } catch (error) {
     console.error(`Failed to load GeoJSON file ${zone.path}:`, error);
@@ -121,14 +124,17 @@ const waypoints = [
 //  SECTION 3: STORY NAVIGATION & UI
 //
 // =_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=
-let currentWaypoint = 0;
-const storyContainer = document.getElementById('story');
+// This section requires the HTML to have elements with specific IDs 
+// (e.g., 'waypoint-title', 'prev', 'next'). If they don't exist, this will not run.
 const waypointTitle = document.getElementById('waypoint-title');
 const waypointDescription = document.getElementById('waypoint-description');
 const prevButton = document.getElementById('prev');
 const nextButton = document.getElementById('next');
+let currentWaypoint = 0;
 
 function updateStoryUI(index) {
+  if (!waypointTitle || !waypointDescription) return; // Exit if UI elements are not found
+
   const waypoint = waypoints[index];
   waypointTitle.textContent = waypoint.title;
   waypointDescription.textContent = waypoint.description;
@@ -143,25 +149,27 @@ function updateStoryUI(index) {
     riskZoneLayers[year].show = (year === waypoint.visibleLayer);
   });
 
-  prevButton.disabled = (index === 0);
-  nextButton.disabled = (index === waypoints.length - 1);
+  if (prevButton) prevButton.disabled = (index === 0);
+  if (nextButton) nextButton.disabled = (index === waypoints.length - 1);
 }
 
-prevButton.addEventListener('click', () => {
-  if (currentWaypoint > 0) {
-    currentWaypoint--;
-    updateStoryUI(currentWaypoint);
-  }
-});
+if (prevButton && nextButton) {
+  prevButton.addEventListener('click', () => {
+    if (currentWaypoint > 0) {
+      currentWaypoint--;
+      updateStoryUI(currentWaypoint);
+    }
+  });
 
-nextButton.addEventListener('click', () => {
-  if (currentWaypoint < waypoints.length - 1) {
-    currentWaypoint++;
-    updateStoryUI(currentWaypoint);
-  }
-});
+  nextButton.addEventListener('click', () => {
+    if (currentWaypoint < waypoints.length - 1) {
+      currentWaypoint++;
+      updateStoryUI(currentWaypoint);
+    }
+  });
+}
 
-// This timeout is a failsafe to ensure UI updates after all data has loaded
+// Failsafe timeout to initialize the view
 setTimeout(() => {
     updateStoryUI(0);
-}, 1000);
+}, 1500);
