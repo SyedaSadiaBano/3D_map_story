@@ -3,56 +3,40 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Story Map: Sea-Level Rise on the Sindh Coast</title>
-    <!-- Leaflet CSS -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+    <title>3D Story Map: Sea-Level Rise on the Sindh Coast (CesiumJS)</title>
+    <!-- CesiumJS CSS -->
+    <link href="https://cesium.com/downloads/cesiumjs/releases/1.112/Build/Cesium/Widgets/widgets.css" rel="stylesheet">
     <!-- Custom CSS -->
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-
-    <div id="map"></div>
-
+    <div id="cesiumContainer"></div>
     <div id="story">
         <header>
-            <h1>The Rising Tide: Visualizing Sea-Level Rise on the Sindh Coast</h1>
+            <h1>The Rising Tide: A 3D View of Sea-Level Rise on the Sindh Coast</h1>
             <p>A projection of coastal flood risk for 2030, 2040, and 2050 based on IPCC AR6 data.</p>
         </header>
-
         <section id="introduction">
-            <h2>Introduction: A Coastline at Risk</h2>
-            <p>The coastline of Sindh, a densely populated and economically vital region, faces a significant threat from global sea-level rise. This story map visualizes the progressive expansion of areas that will become vulnerable to episodic coastal flooding over the next three decades. The projections are based on a moderate emissions scenario (SSP2-4.5) from the Intergovernmental Panel on Climate Change (IPCC).</p>
+             <h2>Introduction: A Coastline at Risk</h2>
+             <p>The coastline of Sindh faces a significant threat from global sea-level rise. This 3D story map visualizes the progressive expansion of areas vulnerable to coastal flooding over the next three decades.</p>
         </section>
-
-        <!-- This special section will trigger the first map view -->
         <section id="scenario-2030" class="map-trigger">
             <h2>2030: The Baseline Risk</h2>
-            <p>By 2030, areas at or near the current mean sea level (0 meters elevation) are considered to be at high risk of permanent inundation or frequent tidal flooding. This represents the immediate, baseline risk that coastal communities face.</p>
+            <p>By 2030, areas at or near the current mean sea level are considered at high risk. The light blue area shows the extent of this baseline vulnerability.</p>
         </section>
-
-        <!-- This special section will trigger the second map view -->
         <section id="scenario-2040" class="map-trigger">
             <h2>2040: Expanding Vulnerability</h2>
-            <p>As the sea level continues to rise, the zone of vulnerability expands inland. The area within 50 meters of the baseline inundation zone becomes highly susceptible to storm surges and extreme high tides. This represents a growing threat to coastal infrastructure and ecosystems.</p>
+            <p>As the sea level rises, the zone of vulnerability expands. The medium blue area shows the 50-meter buffer zone now susceptible to storm surges.</p>
         </section>
-
-        <!-- This special section will trigger the third map view -->
         <section id="scenario-2050" class="map-trigger">
             <h2>2050: A Critical Threshold</h2>
-            <p>By mid-century, the flood risk zone expands significantly. The area within 150 meters of the baseline becomes the new frontier of coastal risk. This scenario highlights the urgent need for long-term adaptation and planning to protect coastal communities and assets from the compounding effects of a rising sea.</p>
+            <p>By mid-century, the flood risk zone expands to 150 meters from the baseline (dark blue area), highlighting the urgent need for long-term adaptation.</p>
         </section>
-
-        <section id="conclusion">
-            <h2>Conclusion</h2>
-            <p>This visualization demonstrates the clear and progressive nature of the threat posed by sea-level rise. While the changes in the coming decades may seem incremental, they represent a significant increase in risk for the people, economy, and environment of the Sindh coast. Proactive planning and adaptation measures are essential to build resilience against this rising tide.</p>
-        </section>
-
     </div>
 
-    <!-- Leaflet JS -->
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <!-- CesiumJS -->
+    <script src="https://cesium.com/downloads/cesiumjs/releases/1.112/Build/Cesium/Cesium.js"></script>
     <!-- Custom JS -->
     <script src="map.js"></script>
 </body>
 </html>
-
