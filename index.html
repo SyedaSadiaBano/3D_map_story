@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Story Map: Sea-Level Rise on the Sindh Coast (CesiumJS)</title>
+    <!-- CesiumJS CSS -->
+    <link href="https://cesium.com/downloads/cesiumjs/releases/1.112/Build/Cesium/Widgets/widgets.css" rel="stylesheet">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="cesiumContainer"></div>
+    <div id="story">
+        <header>
+            <h1>The Rising Tide: A 3D View of Sea-Level Rise on the Sindh Coast</h1>
+            <p>A projection of coastal flood risk for 2030, 2040, and 2050 based on IPCC AR6 data.</p>
+        </header>
+        <section id="introduction">
+             <h2>Introduction: A Coastline at Risk</h2>
+             <p>The coastline of Sindh faces a significant threat from global sea-level rise. This 3D story map visualizes the progressive expansion of areas vulnerable to coastal flooding over the next three decades.</p>
+        </section>
+        <section id="scenario-2030" class="map-trigger">
+            <h2>2030: The Baseline Risk</h2>
+            <p>By 2030, areas at or near the current mean sea level are considered at high risk. The light blue area shows the extent of this baseline vulnerability.</p>
+        </section>
+        <section id="scenario-2040" class="map-trigger">
+            <h2>2040: Expanding Vulnerability</h2>
+            <p>As the sea level rises, the zone of vulnerability expands. The medium blue area shows the 50-meter buffer zone now susceptible to storm surges.</p>
+        </section>
+        <section id="scenario-2050" class="map-trigger">
+            <h2>2050: A Critical Threshold</h2>
+            <p>By mid-century, the flood risk zone expands to 150 meters from the baseline (dark blue area), highlighting the urgent need for long-term adaptation.</p>
+        </section>
+    </div>
+
+    <!-- CesiumJS -->
+    <script src="https://cesium.com/downloads/cesiumjs/releases/1.112/Build/Cesium/Cesium.js"></script>
+    <!-- Custom JS -->
+    <script src="map.js"></script>
+</body>
+</html>
