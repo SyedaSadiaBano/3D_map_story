@@ -1,57 +1,65 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Story Map: Sea-Level Rise on the Sindh Coast</title>
-    <!-- Leaflet CSS -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
-    <!-- Custom CSS -->
-    <link rel="stylesheet" href="style.css">
-</head>
-<body>
+/* General Body and Font Styling */
+body {
+    margin: 0;
+    padding: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    line-height: 1.6;
+    color: #333;
+}
 
-    <div id="map"></div>
+/* Map Container: Fixed to the entire screen */
+#map {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1; /* Places it behind the story */
+}
 
-    <div id="story">
-        <header>
-            <h1>The Rising Tide: Visualizing Sea-Level Rise on the Sindh Coast</h1>
-            <p>A projection of coastal flood risk for 2030, 2040, and 2050 based on IPCC AR6 data.</p>
-        </header>
+/* Story Container: The main scrolling panel */
+#story {
+    position: relative;
+    z-index: 2; /* Places it on top of the map */
+    max-width: 500px;
+    margin: 20px;
+    background-color: rgba(255, 255, 255, 0.9); /* Semi-transparent white */
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
 
-        <section id="introduction">
-            <h2>Introduction: A Coastline at Risk</h2>
-            <p>The coastline of Sindh, a densely populated and economically vital region, faces a significant threat from global sea-level rise. This story map visualizes the progressive expansion of areas that will become vulnerable to episodic coastal flooding over the next three decades. The projections are based on a moderate emissions scenario (SSP2-4.5) from the Intergovernmental Panel on Climate Change (IPCC).</p>
-        </section>
+/* Header Section Styling */
+header {
+    padding: 20px;
+    border-bottom: 1px solid #ddd;
+}
 
-        <!-- This special section will trigger the first map view -->
-        <section id="scenario-2030" class="map-trigger">
-            <h2>2030: The Baseline Risk</h2>
-            <p>By 2030, areas at or near the current mean sea level (0 meters elevation) are considered to be at high risk of permanent inundation or frequent tidal flooding. This represents the immediate, baseline risk that coastal communities face.</p>
-        </section>
+header h1 {
+    font-size: 2em;
+    margin: 0;
+}
 
-        <!-- This special section will trigger the second map view -->
-        <section id="scenario-2040" class="map-trigger">
-            <h2>2040: Expanding Vulnerability</h2>
-            <p>As the sea level continues to rise, the zone of vulnerability expands inland. The area within 50 meters of the baseline inundation zone becomes highly susceptible to storm surges and extreme high tides. This represents a growing threat to coastal infrastructure and ecosystems.</p>
-        </section>
+header p {
+    font-size: 1.1em;
+    color: #555;
+}
 
-        <!-- This special section will trigger the third map view -->
-        <section id="scenario-2050" class="map-trigger">
-            <h2>2050: A Critical Threshold</h2>
-            <p>By mid-century, the flood risk zone expands significantly. The area within 150 meters of the baseline becomes the new frontier of coastal risk. This scenario highlights the urgent need for long-term adaptation and planning to protect coastal communities and assets from the compounding effects of a rising sea.</p>
-        </section>
+/* General Section Styling */
+section {
+    padding: 20px;
+    border-bottom: 1px solid #ddd;
+}
 
-        <section id="conclusion">
-            <h2>Conclusion</h2>
-            <p>This visualization demonstrates the clear and progressive nature of the threat posed by sea-level rise. While the changes in the coming decades may seem incremental, they represent a significant increase in risk for the people, economy, and environment of the Sindh coast. Proactive planning and adaptation measures are essential to build resilience against this rising tide.</p>
-        </section>
+section:last-child {
+    border-bottom: none;
+}
 
-    </div>
+section h2 {
+    margin-top: 0;
+    color: #0072B2; /* A shade of blue to match the map */
+}
 
-    <!-- Leaflet JS -->
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <!-- Custom JS -->
-    <script src="map.js"></script>
-</body>
-</html>
+/* Styling for the active "trigger" section */
+.map-trigger.active {
+    background-color: rgba(230, 247, 255, 0.95); /* A light blue highlight */
+}
