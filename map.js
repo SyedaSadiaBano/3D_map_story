@@ -28,11 +28,6 @@ let waypoints = [];
 let currentWaypoint = 0;
 let minX = Infinity, minY = Infinity; // To store the origin of the projected data
 
-// UI Elements
-const waypointTitle = document.getElementById('waypoint-title');
-const waypointDescription = document.getElementById('waypoint-description');
-const prevButton = document.getElementById('prev');
-const nextButton = document.getElementById('next');
 
 // =================================================================
 // Data Loading
@@ -49,9 +44,11 @@ Promise.all([
         '2050': riskZone2050
     };
     loadRiskZones(riskZoneData);
-    setupWaypoints();
-    updateStoryUI(0);
-}).catch(error => console.error('There was a problem with the fetch operation:', error));
+    setupScene();
+}).catch(error => {
+    console.error('There was a problem with the fetch operation:', error);
+    alert(`Error Loading Map Data: ${error.message}`);
+});
 
 function loadRiskZones(riskZoneData) {
     const riskZoneFiles = {
@@ -108,17 +105,17 @@ function loadRiskZones(riskZoneData) {
                 zoneGroup.add(mesh);
             }
         });
-        zoneGroup.visible = false;
+        zoneGroup.visible = true;
         riskZoneLayers[year] = zoneGroup;
         scene.add(zoneGroup);
     }
 }
 
 // =================================================================
-// Story Navigation
+// Scene Setup
 // =================================================================
 
-function setupWaypoints() {
+function setupScene() {
     let combinedBox = new THREE.Box3();
     for (const year in riskZoneLayers) {
         const box = new THREE.Box3().setFromObject(riskZoneLayers[year]);
@@ -133,67 +130,10 @@ function setupWaypoints() {
     plane.position.set(center.x, center.y, -0.1);
     scene.add(plane);
 
-    waypoints = [
-        {
-            title: "A Coastline at Risk",
-            description: "A 2D view of sea-level rise on the Sindh Coast.",
-            cameraPosition: new THREE.Vector3(center.x, center.y, size.z + 150),
-            cameraTarget: center,
-            visibleLayer: null
-        },
-        {
-            title: "2030: The Baseline Risk",
-            description: "By 2030, areas at or near the current mean sea level are considered at high risk.",
-            cameraPosition: new THREE.Vector3(center.x, center.y, size.z + 150),
-            cameraTarget: center,
-            visibleLayer: '2030'
-        },
-        {
-            title: "2040: Expanding Vulnerability",
-            description: "The zone of vulnerability expands, making the 50-meter buffer zone susceptible to storm surges.",
-            cameraPosition: new THREE.Vector3(center.x, center.y, size.z + 150),
-            cameraTarget: center,
-            visibleLayer: '2040'
-        },
-        {
-            title: "2050: A Critical Threshold",
-            description: "By mid-century, the flood risk zone expands to 150 meters from the baseline.",
-            cameraPosition: new THREE.Vector3(center.x, center.y, size.z + 150),
-            cameraTarget: center,
-            visibleLayer: '2050'
-        }
-    ];
+    camera.position.set(center.x, center.y, center.z + size.y * 2.5);
+    controls.target.set(center.x, center.y, 0);
 }
 
-function updateStoryUI(index) {
-  const waypoint = waypoints[index];
-  waypointTitle.textContent = waypoint.title;
-  waypointDescription.textContent = waypoint.description;
-
-  for (const year in riskZoneLayers) {
-      riskZoneLayers[year].visible = (year === waypoint.visibleLayer);
-  }
-
-  new TWEEN.Tween(camera.position).to(waypoint.cameraPosition, 2000).easing(TWEEN.Easing.Quadratic.InOut).start();
-  new TWEEN.Tween(controls.target).to(waypoint.cameraTarget, 2000).easing(TWEEN.Easing.Quadratic.InOut).start();
-
-  prevButton.disabled = (index === 0);
-  nextButton.disabled = (index === waypoints.length - 1);
-}
-
-prevButton.addEventListener('click', () => {
-  if (currentWaypoint > 0) {
-    currentWaypoint--;
-    updateStoryUI(currentWaypoint);
-  }
-});
-
-nextButton.addEventListener('click', () => {
-  if (currentWaypoint < waypoints.length - 1) {
-    currentWaypoint++;
-    updateStoryUI(currentWaypoint);
-  }
-});
 
 // =================================================================
 // Render Loop
@@ -201,7 +141,6 @@ nextButton.addEventListener('click', () => {
 
 function animate() {
   requestAnimationFrame(animate);
-  TWEEN.update();
   controls.update();
   renderer.render(scene, camera);
 }
