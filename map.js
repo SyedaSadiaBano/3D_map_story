@@ -1,146 +1,198 @@
 // =================================================================
-// Step 1: Get Your Cesium ion Access Token
+// Setup
 // =================================================================
-// This should contain your valid token from cesium.com/ion/tokens
-Cesium.Ion.defaultAccessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiI2NTM4ODEwOS1kY2YzLTQ1NTQtYjdkNi00MjVhZDhiOWI5MjQiLCJpZCI6MzY1NjQ0LCJpYXQiOjE3NjQ2MjgwMTN9.VbtictK8wX9wRujhyof4bik51dNsNYPfSRqqatIrfFY'; // MAKE SURE YOUR TOKEN IS PASTED HERE
-// =================================================================
-// Step 2: Initialize the Cesium Viewer
-// =================================================================
-const viewer = new Cesium.Viewer('cesiumContainer', {
-  terrain: Cesium.Terrain.fromWorldTerrain(),
-  infoBox: false,
-  selectionIndicator: false,
-  shouldAnimate: true,
-});
 
-viewer.scene.globe.enableLighting = true;
+// Scene, Camera, Renderer
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0xf0f0f0);
+const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 10000);
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setSize(window.innerWidth, window.innerHeight);
+document.getElementById('threejsContainer').appendChild(renderer.domElement);
 
-// =_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=
-//
-//  SECTION 1: LOAD YOUR DATASETS
-//
-// =_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=
+// Controls
+const controls = new THREE.OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+controls.dampingFactor = 0.05;
 
-// --- LOAD 3D BUILDING TILESET ---
-const buildingAssetId = 4182584; 
-try {
-  const tileset = await Cesium.Cesium3DTileset.fromIonAssetId(buildingAssetId);
-  viewer.scene.primitives.add(tileset);
-} catch (error) {
-  console.error(`Error loading tileset: ${error}`);
-}
+// Lighting
+const ambientLight = new THREE.AmbientLight(0xcccccc);
+scene.add(ambientLight);
+const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+directionalLight.position.set(50, 100, 75);
+scene.add(directionalLight);
 
-// --- LOAD RISK ZONE GEOJSON LAYERS (CORRECTED PATHS AND FILENAMES) ---
-const riskZoneData = [
-  { year: '2030', path: './inundation_baseline.json' },
-  { year: '2040', path: './risk_zone_2040.json' },
-  { year: '2050', path: './risk_zone_2050.json' }
-];
-
-const riskZoneColors = [
-  Cesium.Color.fromBytes(255, 235, 59, 100), // Yellow for 2030
-  Cesium.Color.fromBytes(255, 152, 0, 100),  // Orange for 2040
-  Cesium.Color.fromBytes(244, 67, 54, 100)   // Red for 2050
-];
-
-const riskZoneLayers = {};
-
-riskZoneData.forEach(async (zone, index) => {
-  try {
-    const dataSource = await Cesium.GeoJsonDataSource.load(zone.path, {
-      stroke: Cesium.Color.BLACK.withAlpha(0.5),
-      fill: riskZoneColors[index],
-      strokeWidth: 2
-    });
-    dataSource.name = `Risk Zone ${zone.year}`;
-    riskZoneLayers[zone.year] = dataSource; // Store the layer using the correct year
-    dataSource.show = false; // Initially hide the layer
-    await viewer.dataSources.add(dataSource);
-  } catch (error) {
-    console.error(`Failed to load GeoJSON file ${zone.path}:`, error);
-  }
-});
-
-
-// =_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=
-//
-//  SECTION 2: DEFINE CAMERA LOCATIONS (WAYPOINTS)
-//
-// =_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=
-const waypoints = [
-  {
-    title: "Introduction",
-    description: "Coastal areas of Sindh, Pakistan, are facing a significant threat from rising sea levels. This visualization shows the projected coastal flood risk zones for 2030, 2040, and 2050.",
-    location: {
-      destination: Cesium.Cartesian3.fromDegrees(67.4, 24.8, 40000),
-      orientation: { heading: Cesium.Math.toRadians(0), pitch: Cesium.Math.toRadians(-45), roll: 0 }
-    },
-    visibleLayer: null
-  },
-  {
-    title: "Projected Risk in 2030",
-    description: "By 2030, the initial effects of sea-level rise become apparent, with low-lying coastal areas experiencing more frequent flooding. This is the first line of impact.",
-    location: {
-      destination: Cesium.Cartesian3.fromDegrees(67.15, 24.8, 15000),
-      orientation: { heading: Cesium.Math.toRadians(20), pitch: Cesium.Math.toRadians(-35), roll: 0 }
-    },
-    visibleLayer: '2030'
-  },
-  {
-    title: "Projected Risk in 2040",
-    description: "A decade later, the flood risk zone expands further inland. Areas that were previously safe are now vulnerable, impacting infrastructure and residential zones.",
-    location: {
-      destination: Cesium.Cartesian3.fromDegrees(67.05, 24.8, 15000),
-      orientation: { heading: Cesium.Math.toRadians(-10), pitch: Cesium.Math.toRadians(-35), roll: 0 }
-    },
-    visibleLayer: '2040'
-  },
-  {
-    title: "Projected Risk in 2050",
-    description: "By mid-century, the situation becomes critical. The 2050 flood risk zone covers a significant portion of the coastal city, posing a severe threat to the population and economy.",
-    location: {
-      destination: Cesium.Cartesian3.fromDegrees(67.0, 24.83, 15000),
-      orientation: { heading: Cesium.Math.toRadians(0), pitch: Cesium.Math.toRadians(-35), roll: 0 }
-    },
-    visibleLayer: '2050'
-  },
-  {
-    title: "A City Transformed",
-    description: "Fly over the affected areas to see the scale of the challenge. Urgent adaptation and mitigation strategies are needed to protect these communities.",
-    location: {
-      destination: Cesium.Cartesian3.fromDegrees(67.08, 24.78, 25000),
-      orientation: { heading: Cesium.Math.toRadians(45), pitch: Cesium.Math.toRadians(-50), roll: 0 }
-    },
-    visibleLayer: '2050'
-  }
-];
-
-// =_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=
-//
-//  SECTION 3: STORY NAVIGATION & UI
-//
-// =_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=
+// Global variables
+let buildingsGroup = new THREE.Group();
+let riskZoneLayers = {};
+let waypoints = [];
 let currentWaypoint = 0;
-const storyContainer = document.getElementById('story');
+let minX = Infinity, minY = Infinity; // To store the origin of the projected data
+
+// UI Elements
 const waypointTitle = document.getElementById('waypoint-title');
 const waypointDescription = document.getElementById('waypoint-description');
 const prevButton = document.getElementById('prev');
 const nextButton = document.getElementById('next');
+
+// =================================================================
+// Data Loading
+// =================================================================
+
+const buildingDataUrl = 'https://zggeb2r2okbrrjju.public.blob.vercel-storage.com/sindh-buildings.json';
+
+fetch(buildingDataUrl)
+  .then(response => {
+    if (!response.ok) throw new Error(`Network response was not ok: ${response.statusText}`);
+    return response.json();
+  })
+  .then(data => {
+    console.log('Building data loaded successfully');
+    createBuildings(data);
+    loadRiskZones();
+    setupWaypoints();
+    updateStoryUI(0);
+  })
+  .catch(error => console.error('There was a problem with the fetch operation:', error));
+
+function createBuildings(data) {
+  const srcProjection = 'EPSG:4326';
+  const destProjection = 'EPSG:3857';
+  const buildingMaterial = new THREE.MeshLambertMaterial({ color: 0xaaaaaa, side: THREE.DoubleSide });
+
+  data.features.forEach(feature => {
+    const coords = feature.geometry.coordinates[0];
+    coords.forEach(c => {
+      if (isFinite(c[0]) && isFinite(c[1])) {
+        const p = proj4(srcProjection, destProjection, [c[0], c[1]]);
+        if (p[0] < minX) minX = p[0];
+        if (p[1] < minY) minY = p[1];
+      }
+    });
+  });
+
+  const scale = 0.01;
+  data.features.forEach(feature => {
+    const coords = feature.geometry.coordinates[0];
+    const shape = new THREE.Shape();
+    const projectedCoords = coords
+      .filter(c => isFinite(c[0]) && isFinite(c[1]))
+      .map(c => {
+        const p = proj4(srcProjection, destProjection, [c[0], c[1]]);
+        return { x: (p[0] - minX) * scale, y: (p[1] - minY) * scale };
+    });
+    
+    if (projectedCoords.length > 2) {
+        shape.moveTo(projectedCoords[0].x, projectedCoords[0].y);
+        for (let i = 1; i < projectedCoords.length; i++) shape.lineTo(projectedCoords[i].x, projectedCoords[i].y);
+        const extrudeSettings = { depth: (Math.random() * 2 + 0.5), bevelEnabled: false };
+        const geometry = new THREE.ExtrudeGeometry(shape, extrudeSettings);
+        const building = new THREE.Mesh(geometry, buildingMaterial);
+        buildingsGroup.add(building);
+    }
+  });
+  
+  scene.add(buildingsGroup);
+}
+
+function loadRiskZones() {
+    const riskZoneFiles = {
+        '2030': { path: './inundation_baseline.json', color: 0x00FFFF }, // Cyan
+        '2040': { path: './risk_zone_2040.json', color: 0x0000FF },   // Blue
+        '2050': { path: './risk_zone_2050.json', color: 0x800080 }    // Purple
+    };
+    const srcProjection = 'EPSG:4326';
+    const destProjection = 'EPSG:3857';
+    const scale = 0.01;
+
+    for (const year in riskZoneFiles) {
+        const { path, color } = riskZoneFiles[year];
+        fetch(path)
+            .then(response => {
+                if (!response.ok) throw new Error(`Failed to load ${path}`);
+                return response.json();
+            })
+            .then(data => {
+                const material = new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0.5, side: THREE.DoubleSide });
+                const zoneGroup = new THREE.Group();
+                data.features.forEach(feature => {
+                    const coords = feature.geometry.coordinates[0];
+                    const shape = new THREE.Shape();
+                    const projectedCoords = coords
+                        .filter(c => isFinite(c[0]) && isFinite(c[1]))
+                        .map(c => {
+                            const p = proj4(srcProjection, destProjection, [c[0], c[1]]);
+                            return { x: (p[0] - minX) * scale, y: (p[1] - minY) * scale };
+                        });
+                    
+                    if (projectedCoords.length > 2) {
+                        shape.moveTo(projectedCoords[0].x, projectedCoords[0].y);
+                        for (let i = 1; i < projectedCoords.length; i++) shape.lineTo(projectedCoords[i].x, projectedCoords[i].y);
+                        const geometry = new THREE.ShapeGeometry(shape);
+                        const mesh = new THREE.Mesh(geometry, material);
+                        zoneGroup.add(mesh);
+                    }
+                });
+                zoneGroup.visible = false;
+                riskZoneLayers[year] = zoneGroup;
+                scene.add(zoneGroup);
+            })
+            .catch(error => console.error(error));
+    }
+}
+
+// =================================================================
+// Story Navigation
+// =================================================================
+
+function setupWaypoints() {
+    const box = new THREE.Box3().setFromObject(buildingsGroup);
+    const center = box.getCenter(new THREE.Vector3());
+    const size = box.getSize(new THREE.Vector3());
+
+    waypoints = [
+        {
+            title: "A Coastline at Risk",
+            description: "A 3D view of sea-level rise on the Sindh Coast.",
+            cameraPosition: new THREE.Vector3(center.x, center.y - size.y * 1.2, center.z + size.z * 2),
+            cameraTarget: center,
+            visibleLayer: null
+        },
+        {
+            title: "2030: The Baseline Risk",
+            description: "By 2030, areas at or near the current mean sea level are considered at high risk.",
+            cameraPosition: new THREE.Vector3(center.x, center.y - size.y / 2, center.z + size.z),
+            cameraTarget: center,
+            visibleLayer: '2030'
+        },
+        {
+            title: "2040: Expanding Vulnerability",
+            description: "The zone of vulnerability expands, making the 50-meter buffer zone susceptible to storm surges.",
+            cameraPosition: new THREE.Vector3(center.x, center.y, center.z + size.z * 1.5),
+            cameraTarget: center,
+            visibleLayer: '2040'
+        },
+        {
+            title: "2050: A Critical Threshold",
+            description: "By mid-century, the flood risk zone expands to 150 meters from the baseline.",
+            cameraPosition: new THREE.Vector3(center.x, center.y + size.y / 2, center.z + size.z),
+            cameraTarget: center,
+            visibleLayer: '2050'
+        }
+    ];
+}
 
 function updateStoryUI(index) {
   const waypoint = waypoints[index];
   waypointTitle.textContent = waypoint.title;
   waypointDescription.textContent = waypoint.description;
 
-  viewer.camera.flyTo({
-    destination: waypoint.location.destination,
-    orientation: waypoint.location.orientation,
-    duration: 3.0
-  });
+  for (const year in riskZoneLayers) {
+      riskZoneLayers[year].visible = (year === waypoint.visibleLayer);
+  }
 
-  Object.keys(riskZoneLayers).forEach(year => {
-    riskZoneLayers[year].show = (year === waypoint.visibleLayer);
-  });
+  new TWEEN.Tween(camera.position).to(waypoint.cameraPosition, 2000).easing(TWEEN.Easing.Quadratic.InOut).start();
+  new TWEEN.Tween(controls.target).to(waypoint.cameraTarget, 2000).easing(TWEEN.Easing.Quadratic.InOut).start();
 
   prevButton.disabled = (index === 0);
   nextButton.disabled = (index === waypoints.length - 1);
@@ -160,8 +212,22 @@ nextButton.addEventListener('click', () => {
   }
 });
 
-// This timeout is a failsafe to ensure UI updates after all data has loaded
-setTimeout(() => {
-    updateStoryUI(0);
-}, 1000);
+// =================================================================
+// Render Loop
+// =================================================================
 
+function animate() {
+  requestAnimationFrame(animate);
+  TWEEN.update();
+  controls.update();
+  renderer.render(scene, camera);
+}
+
+animate();
+
+// Handle window resizing
+window.addEventListener('resize', () => {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+}, false);
