@@ -1,0 +1,8 @@
+{
+  "rewrites": [
+    {
+      "source": "/:path*",
+      "destination": "/3D_map_story/:path*"
+    }
+  ]
+}
