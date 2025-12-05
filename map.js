@@ -23,7 +23,6 @@ directionalLight.position.set(50, 100, 75);
 scene.add(directionalLight);
 
 // Global variables
-let buildingsGroup = new THREE.Group();
 let riskZoneLayers = {};
 let waypoints = [];
 let currentWaypoint = 0;
@@ -39,119 +38,79 @@ const nextButton = document.getElementById('next');
 // Data Loading
 // =================================================================
 
-const buildingDataUrl = 'https://zggeb2r2okbrrjju.public.blob.vercel-storage.com/sindh-buildings.json';
-
-fetch(buildingDataUrl)
-  .then(response => {
-    if (!response.ok) throw new Error(`Network response was not ok: ${response.statusText}`);
-    return response.json();
-  })
-  .then(data => {
-    console.log('Building data loaded successfully');
-    createBuildings(data);
-    loadRiskZones();
+Promise.all([
+    fetch('https://raw.githubusercontent.com/SyedaSadiaBano/3D_map_story/main/inundation_baseline.json').then(res => res.json()),
+    fetch('https://raw.githubusercontent.com/SyedaSadiaBano/3D_map_story/main/risk_zone_2040.json').then(res => res.json()),
+    fetch('https://raw.githubusercontent.com/SyedaSadiaBano/3D_map_story/main/risk_zone_2050.json').then(res => res.json())
+]).then(([baseline, riskZone2040, riskZone2050]) => {
+    const riskZoneData = {
+        '2030': baseline,
+        '2040': riskZone2040,
+        '2050': riskZone2050
+    };
+    loadRiskZones(riskZoneData);
     setupWaypoints();
     updateStoryUI(0);
-  })
-  .catch(error => console.error('There was a problem with the fetch operation:', error));
+}).catch(error => console.error('There was a problem with the fetch operation:', error));
 
-function createBuildings(data) {
-  const srcProjection = 'EPSG:4326';
-  const destProjection = 'EPSG:3857';
-  const buildingMaterial = new THREE.MeshLambertMaterial({ color: 0xaaaaaa, side: THREE.DoubleSide });
-
-  // *** THIS IS THE FIX FOR THE MEMORY ERROR ***
-  // The full dataset is too large and causes WebGL to run out of memory.
-  // We slice the array to only render the first 5000 features as a demonstration.
-  const features = data.features.slice(0, 5000);
-
-  // First, find the origin based on the sliced data
-  features.forEach(feature => {
-    if (!feature.geometry || !feature.geometry.coordinates || !feature.geometry.coordinates[0]) return;
-    const coords = feature.geometry.coordinates[0];
-    coords.forEach(c => {
-      if (isFinite(c[0]) && isFinite(c[1])) {
-        const p = proj4(srcProjection, destProjection, [c[0], c[1]]);
-        if (p[0] < minX) minX = p[0];
-        if (p[1] < minY) minY = p[1];
-      }
-    });
-  });
-
-  if (minX === Infinity) { // If no valid coordinates were found
-      console.error("No valid coordinates found in the dataset to establish an origin.");
-      return;
-  }
-
-  const scale = 0.01;
-  features.forEach(feature => {
-    if (!feature.geometry || !feature.geometry.coordinates || !feature.geometry.coordinates[0]) return;
-    const coords = feature.geometry.coordinates[0];
-    const shape = new THREE.Shape();
-    const projectedCoords = coords
-      .filter(c => isFinite(c[0]) && isFinite(c[1]))
-      .map(c => {
-        const p = proj4(srcProjection, destProjection, [c[0], c[1]]);
-        return { x: (p[0] - minX) * scale, y: (p[1] - minY) * scale };
-    });
-    
-    if (projectedCoords.length > 2) {
-        shape.moveTo(projectedCoords[0].x, projectedCoords[0].y);
-        for (let i = 1; i < projectedCoords.length; i++) shape.lineTo(projectedCoords[i].x, projectedCoords[i].y);
-        const extrudeSettings = { depth: (Math.random() * 2 + 0.5), bevelEnabled: false };
-        const geometry = new THREE.ExtrudeGeometry(shape, extrudeSettings);
-        const building = new THREE.Mesh(geometry, buildingMaterial);
-        buildingsGroup.add(building);
-    }
-  });
-  
-  scene.add(buildingsGroup);
-}
-
-function loadRiskZones() {
+function loadRiskZones(riskZoneData) {
     const riskZoneFiles = {
-        '2030': { path: './inundation_baseline.json', color: 0x00FFFF }, // Cyan
-        '2040': { path: './risk_zone_2040.json', color: 0x0000FF },   // Blue
-        '2050': { path: './risk_zone_2050.json', color: 0x800080 }    // Purple
+        '2030': { color: 0x40E0D0 }, // Turquoise
+        '2040': { color: 0x4169E1 },   // Royal Blue
+        '2050': { color: 0x4B0082 }    // Indigo
     };
     const srcProjection = 'EPSG:4326';
     const destProjection = 'EPSG:3857';
     const scale = 0.01;
 
-    for (const year in riskZoneFiles) {
-        const { path, color } = riskZoneFiles[year];
-        fetch(path)
-            .then(response => {
-                if (!response.ok) throw new Error(`Failed to load ${path}`);
-                return response.json();
-            })
-            .then(data => {
-                const material = new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0.5, side: THREE.DoubleSide });
-                const zoneGroup = new THREE.Group();
-                data.features.forEach(feature => {
-                    if (!feature.geometry || !feature.geometry.coordinates || !feature.geometry.coordinates[0]) return;
-                    const coords = feature.geometry.coordinates[0];
-                    const shape = new THREE.Shape();
-                    const projectedCoords = coords
-                        .filter(c => isFinite(c[0]) && isFinite(c[1]))
-                        .map(c => {
-                            const p = proj4(srcProjection, destProjection, [c[0], c[1]]);
-                            return { x: (p[0] - minX) * scale, y: (p[1] - minY) * scale };
-                        });
-                    
-                    if (projectedCoords.length > 2) {
-                        shape.moveTo(projectedCoords[0].x, projectedCoords[0].y);
-                        for (let i = 1; i < projectedCoords.length; i++) shape.lineTo(projectedCoords[i].x, projectedCoords[i].y);
-                        const geometry = new THREE.ShapeGeometry(shape);
-                        const mesh = new THREE.Mesh(geometry, material);
-                        zoneGroup.add(mesh);
-                    }
+    // First, find the origin based on all risk zone data
+    for (const year in riskZoneData) {
+        const data = riskZoneData[year];
+        data.features.forEach(feature => {
+            if (!feature.geometry || !feature.geometry.coordinates || !feature.geometry.coordinates[0]) return;
+            const coords = feature.geometry.coordinates[0];
+            coords.forEach(c => {
+                if (isFinite(c[0]) && isFinite(c[1])) {
+                    const p = proj4(srcProjection, destProjection, [c[0], c[1]]);
+                    if (p[0] < minX) minX = p[0];
+                    if (p[1] < minY) minY = p[1];
+                }
+            });
+        });
+    }
+
+    if (minX === Infinity) { // If no valid coordinates were found
+        console.error("No valid coordinates found in the dataset to establish an origin.");
+        return;
+    }
+
+    for (const year in riskZoneData) {
+        const data = riskZoneData[year];
+        const color = riskZoneFiles[year].color;
+        const material = new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0.5, side: THREE.DoubleSide });
+        const zoneGroup = new THREE.Group();
+        data.features.forEach(feature => {
+            if (!feature.geometry || !feature.geometry.coordinates || !feature.geometry.coordinates[0]) return;
+            const coords = feature.geometry.coordinates[0];
+            const shape = new THREE.Shape();
+            const projectedCoords = coords
+                .filter(c => isFinite(c[0]) && isFinite(c[1]))
+                .map(c => {
+                    const p = proj4(srcProjection, destProjection, [c[0], c[1]]);
+                    return { x: (p[0] - minX) * scale, y: (p[1] - minY) * scale };
                 });
-                zoneGroup.visible = false;
-                riskZoneLayers[year] = zoneGroup;
-                scene.add(zoneGroup);
-            })
-            .catch(error => console.error(error));
+
+            if (projectedCoords.length > 2) {
+                shape.moveTo(projectedCoords[0].x, projectedCoords[0].y);
+                for (let i = 1; i < projectedCoords.length; i++) shape.lineTo(projectedCoords[i].x, projectedCoords[i].y);
+                const geometry = new THREE.ShapeGeometry(shape);
+                const mesh = new THREE.Mesh(geometry, material);
+                zoneGroup.add(mesh);
+            }
+        });
+        zoneGroup.visible = false;
+        riskZoneLayers[year] = zoneGroup;
+        scene.add(zoneGroup);
     }
 }
 
@@ -160,36 +119,46 @@ function loadRiskZones() {
 // =================================================================
 
 function setupWaypoints() {
-    const box = new THREE.Box3().setFromObject(buildingsGroup);
-    const center = box.getCenter(new THREE.Vector3());
-    const size = box.getSize(new THREE.Vector3());
+    let combinedBox = new THREE.Box3();
+    for (const year in riskZoneLayers) {
+        const box = new THREE.Box3().setFromObject(riskZoneLayers[year]);
+        combinedBox.union(box);
+    }
+    const center = combinedBox.getCenter(new THREE.Vector3());
+    const size = combinedBox.getSize(new THREE.Vector3());
+
+    const planeGeometry = new THREE.PlaneGeometry(size.x * 1.2, size.y * 1.2);
+    const planeMaterial = new THREE.MeshBasicMaterial({ color: 0xD2B48C, side: THREE.DoubleSide });
+    const plane = new THREE.Mesh(planeGeometry, planeMaterial);
+    plane.position.set(center.x, center.y, -0.1);
+    scene.add(plane);
 
     waypoints = [
         {
             title: "A Coastline at Risk",
-            description: "A 3D view of sea-level rise on the Sindh Coast.",
-            cameraPosition: new THREE.Vector3(center.x, center.y - size.y * 1.2, center.z + size.z * 2),
+            description: "A 2D view of sea-level rise on the Sindh Coast.",
+            cameraPosition: new THREE.Vector3(center.x, center.y, size.z + 150),
             cameraTarget: center,
             visibleLayer: null
         },
         {
             title: "2030: The Baseline Risk",
             description: "By 2030, areas at or near the current mean sea level are considered at high risk.",
-            cameraPosition: new THREE.Vector3(center.x, center.y - size.y / 2, center.z + size.z),
+            cameraPosition: new THREE.Vector3(center.x, center.y, size.z + 150),
             cameraTarget: center,
             visibleLayer: '2030'
         },
         {
             title: "2040: Expanding Vulnerability",
             description: "The zone of vulnerability expands, making the 50-meter buffer zone susceptible to storm surges.",
-            cameraPosition: new THREE.Vector3(center.x, center.y, center.z + size.z * 1.5),
+            cameraPosition: new THREE.Vector3(center.x, center.y, size.z + 150),
             cameraTarget: center,
             visibleLayer: '2040'
         },
         {
             title: "2050: A Critical Threshold",
             description: "By mid-century, the flood risk zone expands to 150 meters from the baseline.",
-            cameraPosition: new THREE.Vector3(center.x, center.y + size.y / 2, center.z + size.z),
+            cameraPosition: new THREE.Vector3(center.x, center.y, size.z + 150),
             cameraTarget: center,
             visibleLayer: '2050'
         }
