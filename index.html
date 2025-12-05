@@ -1,19 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sindh Coast - Coastal Flood Risk Scenarios</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+  <link rel="stylesheet" href="style.css">
+</head>
 <body>
   <div id="map"></div>
-  <div id="story-panel">
-    <h2>Coastal Flood Risk Scenarios</h2>
-    <div class="story-section">
-      <p><strong>2030:</strong> Baseline inundation zones show the first signs of vulnerability.</p>
+  <div id="info-box">
+    <h4>Coastal Flood Risk Scenarios</h4>
+    <p>This map shows the expansion of coastal areas vulnerable to episodic flooding due to projected sea-level rise.</p>
+    <div id="scenario-control">
+      <label><input type="radio" name="scenario" value="2030" checked> <strong>2030 Risk Zone</strong></label>
+      <label><input type="radio" name="scenario" value="2040"> <strong>2040 Risk Zone</strong></label>
+      <label><input type="radio" name="scenario" value="2050"> <strong>2050 Risk Zone</strong></label>
     </div>
-    <div class="story-section">
-      <p><strong>2040:</strong> Expansion of flood-prone areas with a +50m buffer.</p>
-    </div>
-    <div class="story-section">
-      <p><strong>2050:</strong> Severe risk zones with +150m buffer, highlighting urgent adaptation needs.</p>
-    </div>
-    <h3>Legend</h3>
-    <div class="legend"><span style="background:#56B4E9;"></span> 2030 Risk Zone</div>
-    <div class="legend"><span style="background:#0072B2;"></span> 2040 Risk Zone</div>
-    <div class="legend"><span style="background:#003B5C;"></span> 2050 Risk Zone</div>
+    <div class="legend"><span style="background-color:#56B4E9;"></span> 2030 Risk Zone</div>
+    <div class="legend"><span style="background-color:#0072B2;"></span> 2040 Risk Zone</div>
+    <div class="legend"><span style="background-color:#003B5C;"></span> 2050 Risk Zone</div>
   </div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="map.js"></script>
 </body>
+</html>
