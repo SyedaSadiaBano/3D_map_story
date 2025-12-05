@@ -1,49 +1,28 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sindh Coast - Coastal Flood Risk Scenarios</title>
-    <!-- Leaflet CSS -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
-    <!-- Custom CSS -->
-    <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sindh Coast - Coastal Flood Risk Scenarios</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div id="map"></div>
-    <div id="info-box">
-        <h4>Coastal Flood Risk Scenarios</h4>
-        <p>This map shows the expansion of coastal areas vulnerable to episodic flooding (e.g., during storm surges) due to projected sea-level rise.</p>
-        
-        <div id="scenario-control">
-            <label>
-                <input type="radio" name="scenario" value="2030" checked>
-                <strong>2030 Risk Zone:</strong> Baseline Inundation
-            </label>
-            <label>
-                <input type="radio" name="scenario" value="2040">
-                <strong>2040 Risk Zone:</strong> +50m Vulnerability Buffer
-            </label>
-            <label>
-                <input type="radio" name="scenario" value="2050">
-                <strong>2050 Risk Zone:</strong> +150m Vulnerability Buffer
-            </label>
-        </div>
-
-        <div class="legend">
-            <span style="background-color: #56B4E9;"></span> 2030 Risk Zone
-        </div>
-         <div class="legend">
-            <span style="background-color: #0072B2;"></span> 2040 Risk Zone
-        </div>
-         <div class="legend">
-            <span style="background-color: #003B5C;"></span> 2050 Risk Zone
-        </div>
+  <div id="map"></div>
+  <div id="info-box">
+    <h4>Coastal Flood Risk Scenarios</h4>
+    <p>This map shows the expansion of coastal areas vulnerable to episodic flooding due to projected sea-level rise.</p>
+    <div id="scenario-control">
+      <label><input type="radio" name="scenario" value="2030" checked> <strong>2030 Risk Zone</strong></label>
+      <label><input type="radio" name="scenario" value="2040"> <strong>2040 Risk Zone</strong></label>
+      <label><input type="radio" name="scenario" value="2050"> <strong>2050 Risk Zone</strong></label>
     </div>
+    <div class="legend"><span style="background-color:#56B4E9;"></span> 2030 Risk Zone</div>
+    <div class="legend"><span style="background-color:#0072B2;"></span> 2040 Risk Zone</div>
+    <div class="legend"><span style="background-color:#003B5C;"></span> 2050 Risk Zone</div>
+  </div>
 
-    <!-- Leaflet JS -->
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <!-- Custom JS -->
-    <script src="map.js"></script>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="map.js"></script>
 </body>
 </html>
