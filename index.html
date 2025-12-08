@@ -8,11 +8,6 @@
     <!-- Leaflet -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script src="https://unpkg.com/leaflet.canvaslayer@0.1.4/leaflet.canvaslayer.js"></script>
-    <script src="https://unpkg.com/@turf/turf@6.5.0/turf.min.js"></script>
-    
-    <!-- Font Awesome for icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
     <style>
@@ -21,11 +16,11 @@
             font-family: 'Inter', sans-serif; 
             background: #0a0e2a; color: white; overflow: hidden; height: 100vh;
         }
-        #map { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+        #map { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; }
         
-        /* Story Panel */
+        /* Story Panel - MOVED BELOW zoom controls */
         .story-panel {
-            position: absolute; top: 30px; left: 30px; z-index: 1000; background: rgba(15,20,40,0.98);
+            position: absolute; bottom: 30px; left: 30px; z-index: 1000; background: rgba(15,20,40,0.98);
             backdrop-filter: blur(20px); border-radius: 24px; padding: 30px; max-width: 420px;
             border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 32px 64px rgba(0,0,0,0.4);
         }
@@ -52,44 +47,49 @@
         .metric-value { font-size: 28px; font-weight: 700; margin-bottom: 8px; }
         .metric-label { font-size: 13px; opacity: 0.8; }
         
-        /* Base Map Toggle */
-        .map-toggle {
-            position: absolute; top: 30px; right: 160px; z-index: 1000; background: rgba(15,20,40,0.98);
-            backdrop-filter: blur(20px); border-radius: 20px; padding: 15px;
+        /* Google Maps-style Legend */
+        .legend { 
+            position: absolute; top: 90px; right: 30px; z-index: 1000; background: rgba(15,20,40,0.98); 
+            padding: 20px; border-radius: 16px; min-width: 180px;
             border: 1px solid rgba(255,255,255,0.1);
         }
-        .toggle-btn {
-            background: rgba(255,255,255,0.1); color: white; border: none; padding: 12px 16px;
-            margin: 4px; border-radius: 12px; cursor: pointer; font-size: 14px; transition: all 0.3s;
-        }
-        .toggle-btn.active, .toggle-btn:hover { background: linear-gradient(135deg,#ff6b6b,#4ecdc4); }
-        
-        /* Narrative Panel */
-        .narrative-panel {
-            position: absolute; bottom: 30px; right: 30px; z-index: 1000; background: rgba(15,20,40,0.98);
-            backdrop-filter: blur(20px); border-radius: 24px; padding: 30px; max-width: 450px; max-height: 350px;
-            border: 1px solid rgba(255,255,255,0.1); overflow-y: auto; box-shadow: 0 32px 64px rgba(0,0,0,0.4);
-        }
-        .story-title { font-size: 32px; font-weight: 700; margin-bottom: 20px; line-height: 1.2; }
-        .story-text { line-height: 1.7; font-size: 16px; opacity: 0.95; }
-        
-        /* Legend */
-        .legend { position: absolute; top: 30px; right: 30px; z-index: 1000; background: rgba(15,20,40,0.98); padding: 25px; border-radius: 20px; }
         .legend h4 { margin-bottom: 15px; font-size: 16px; }
-        .legend-row { display: flex; align-items: center; margin: 10px 0; }
-        .legend-color { width: 24px; height: 24px; border-radius: 6px; margin-right: 12px; }
+        .legend-row { display: flex; align-items: center; margin: 12px 0; font-size: 14px; }
+        .legend-color { width: 20px; height: 20px; border-radius: 4px; margin-right: 10px; }
+        
+        /* Narrative */
+        .narrative-panel {
+            position: absolute; top: 30px; right: 240px; z-index: 1000; background: rgba(15,20,40,0.95);
+            backdrop-filter: blur(20px); border-radius: 20px; padding: 25px; max-width: 380px; max-height: 280px;
+            border: 1px solid rgba(255,255,255,0.1); overflow-y: auto; box-shadow: 0 25px 50px rgba(0,0,0,0.4);
+        }
+        .story-title { font-size: 28px; font-weight: 700; margin-bottom: 15px; line-height: 1.2; }
+        .story-text { line-height: 1.6; font-size: 15px; opacity: 0.95; }
+        
+        /* Leaflet control enhancements */
+        .leaflet-top.leaflet-right { z-index: 1000; }
+        .leaflet-control-layers { 
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3) !important; 
+            border-radius: 12px !important; 
+            background: rgba(20,25,45,0.98) !important;
+            backdrop-filter: blur(15px) !important;
+        }
+        .leaflet-control-layers label { 
+            color: white !important; font-family: 'Inter', sans-serif !important; 
+            font-size: 14px !important; padding: 8px 12px !important;
+        }
         
         @media (max-width: 768px) {
-            .story-panel, .narrative-panel, .legend, .map-toggle { position: relative !important; margin: 15px; max-width: none; }
+            .story-panel, .narrative-panel, .legend { position: relative !important; margin: 15px; max-width: none; }
             .metrics-grid { grid-template-columns: 1fr; }
-            .map-toggle { right: 0; top: 0; }
+            .leaflet-control-layers { font-size: 12px !important; }
         }
     </style>
 </head>
 <body>
     <div id="map"></div>
     
-    <!-- Story Controls -->
+    <!-- Story Controls (BOTTOM LEFT - below zoom) -->
     <div class="story-panel">
         <div class="year-display" id="current-year">2030</div>
         <div class="slider-container">
@@ -101,22 +101,15 @@
                 <div class="metric-label">Population at Risk</div>
             </div>
             <div class="metric-card">
-                <div class="metric-value" id="buildings-risk">2.1M</div>
+                <div class="metric-value" id="buildings-risk">21K</div>
                 <div class="metric-label">Buildings Exposed</div>
             </div>
         </div>
     </div>
     
-    <!-- Base Map Toggle -->
-    <div class="map-toggle">
-        <button class="toggle-btn active" data-layer="street"><i class="fas fa-road"></i> Street</button>
-        <button class="toggle-btn" data-layer="terrain"><i class="fas fa-mountain"></i> Terrain</button>
-        <button class="toggle-btn" data-layer="satellite"><i class="fas fa-satellite"></i> Satellite</button>
-    </div>
-    
-    <!-- Legend -->
+    <!-- Legend (Google Maps style - TOP RIGHT) -->
     <div class="legend">
-        <h4>IPCC Risk Zones</h4>
+        <h4><i class="fas fa-exclamation-triangle"></i> Flood Risk</h4>
         <div class="legend-row"><div class="legend-color" style="background: #00ff88;"></div> Safe (>2m)</div>
         <div class="legend-row"><div class="legend-color" style="background: #ffaa00;"></div> Moderate (0.5-2m)</div>
         <div class="legend-row"><div class="legend-color" style="background: #ff4444;"></div> High Risk (<0.5m)</div>
@@ -124,175 +117,162 @@
     
     <!-- Narrative -->
     <div class="narrative-panel">
-        <div class="story-title" id="story-title">Sindh Coastal Catastrophe</div>
+        <div class="story-title" id="story-title">Sindh Coastal Crisis</div>
         <div class="story-text" id="story-text">
-            Karachi's 16 million residents face existential threat from sea level rise. By 2050, IPCC SSP5-8.5 projects 65cm inundation, submerging 72% of buildings and displacing 11.5M people. Informal katcha settlements are most vulnerable.
+            Karachi's coastal settlements face existential threat. By 2050, IPCC projects 65cm sea level rise.
         </div>
     </div>
 
     <script>
-        // Initialize Leaflet Map
-        const map = L.map('map').setView([24.86, 67.05], 12); // Karachi coastal focus
+        // Initialize map (Karachi coast)
+        const map = L.map('map', {
+            zoomControl: true,
+            zoomControlPosition: 'topright'
+        }).setView([24.86, 67.05], 13);
         
-        // Base layers
+        // Base layers (Google Maps style toggle)
         const streetLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '© OpenStreetMap contributors'
+            name: 'Street Map',
+            attribution: '© OpenStreetMap'
         });
         
         const terrainLayer = L.tileLayer('https://{s}.terrain.cartocdn.com/rastertiles/voyager_nolabels/{z}/{x}/{y}{r}.png', {
-            attribution: '© OpenStreetMap contributors, CARTO'
+            name: 'Terrain',
+            attribution: '© CartoDB'
         });
         
         const satelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-            attribution: '© Esri & sources'
+            name: 'Satellite',
+            attribution: '© Esri'
         });
         
-        // Add street as default
-        streetLayer.addTo(map);
+        // Layer control (GOOGLE MAPS POSITION: top-right)
+        const baseMaps = {
+            "🌆 Street": streetLayer,
+            "🏔️ Terrain": terrainLayer,
+            "🛰️ Satellite": satelliteLayer
+        };
         
-        let currentYear = 2030;
+        L.control.layers(baseMaps).addTo(map);
+        streetLayer.addTo(map); // Default
+        
+        // SLR levels
         const slrLevels = { 2030: 0.15, 2040: 0.35, 2050: 0.65 };
+        let currentYear = 2030;
         
-        // Generate DENSE Sindh coastal buildings (VISIBLY LARGER)
-        const sindhBuildings = [];
-        for(let i = 0; i < 50000; i++) { // 50K buildings for visibility
-            const lat = 24.8 + (Math.random() - 0.5) * 0.4;  // Tight Karachi cluster
-            const lon = 67.0 + (Math.random() - 0.5) * 0.6;
-            const height = Math.random() * 8 + 2;  // 2-10m heights
-            const pop = Math.random() * 15 + 2;
-            sindhBuildings.push({ lat, lon, height, pop });
-        }
-        
-        // FIXED: Canvas Layer with VISIBLE BUILDINGS
-        const buildingLayer = L.canvasLayer().delegate({
-            buildings: sindhBuildings,
-            currentSlr: slrLevels[2030],
-            onDrawLayer: function(info) {
-                const ctx = info.canvas.getContext('2d');
-                ctx.clearRect(0, 0, info.canvas.width, info.canvas.height);
+        // 25K Karachi buildings (HIGHLY VISIBLE)
+        const buildingsLayer = L.geoJSON({
+            type: 'FeatureCollection',
+            features: Array.from({length: 25000}, (_, i) => ({
+                type: 'Feature',
+                geometry: {
+                    type: 'Point',
+                    coordinates: [67.0 + (Math.random()-0.5)*0.8, 24.8 + (Math.random()-0.5)*0.5]
+                },
+                properties: {
+                    height: Math.random()*10 + 2,
+                    pop: Math.random()*15 + 2,
+                    id: i
+                }
+            }))
+        }, {
+            pointToLayer: (feature, latlng) => {
+                const height = feature.properties.height;
+                const size = Math.max(8, 20 - map.getZoom());
                 
-                const zoom = map.getZoom();
-                const bounds = info.layer._map.getBounds();
-                
-                // DRAW BUILDINGS (MADE LARGER AND MORE VISIBLE)
-                this.buildings.forEach(building => {
-                    const latLng = L.latLng(building.lat, building.lon);
-                    if(!bounds.contains(latLng)) return;
-                    
-                    const point = map.latLngToLayerPoint(latLng);
-                    const size = Math.max(12, 40 - zoom * 1.5); // LARGER BUILDINGS
-                    const height3d = Math.max(0, building.height * 5 - this.currentSlr * 30); // TALLER
-                    
-                    const submergence = Math.max(0, (this.currentSlr * 3 - building.height) / 4);
-                    
-                    // SHADOW (more visible)
-                    ctx.fillStyle = `rgba(0,0,0,${Math.min(0.6, submergence * 0.5)})`;
-                    ctx.fillRect(point.x - size/2, point.y + size/2 + 3, size, 12);
-                    
-                    // BUILDING BODY
-                    const color = submergence > 0.7 ? [255, 50, 50] :
-                                submergence > 0.3 ? [255, 165, 0] : [0, 255, 100];
-                    const alpha = submergence > 0.7 ? 0.8 : 1;
-                    
-                    const gradient = ctx.createLinearGradient(0, -height3d, 0, 0);
-                    gradient.addColorStop(0, `rgba(${color[0]},${color[1]},${color[2]},${alpha})`);
-                    gradient.addColorStop(1, `rgba(${color[0]},${color[1]},${color[2]},${alpha * 0.4})`);
-                    
-                    ctx.fillStyle = gradient;
-                    ctx.shadowBlur = 10;
-                    ctx.shadowColor = `rgba(${color[0]},${color[1]},${color[2]},0.3)`;
-                    ctx.fillRect(point.x - size/2, point.y - height3d, size, height3d);
-                    ctx.shadowBlur = 0;
-                    
-                    // ROOF GLOW
-                    ctx.fillStyle = `rgba(255,255,255,0.5)`;
-                    ctx.fillRect(point.x - size/2 + 2, point.y - height3d + 2, size - 4, 6);
+                return L.circleMarker(latlng, {
+                    radius: size,
+                    fillColor: height > 4 ? '#00ff88' : height > 2 ? '#ffaa00' : '#ff4444',
+                    color: '#ffffff',
+                    weight: 2,
+                    opacity: 0.9,
+                    fillOpacity: 0.8
                 });
+            },
+            onEachFeature: (feature, layer) => {
+                layer.bindPopup(`Building #${feature.properties.id}<br>Height: ${feature.properties.height.toFixed(1)}m<br>Population: ${Math.round(feature.properties.pop)}`);
             }
         }).addTo(map);
         
-        // FIXED: CLEAR Risk Zones (Multiple polygons covering Karachi coast)
+        // ✅ FIXED Risk Zones (VALID GeoJSON - Karachi coastal strip)
         const riskZones = L.geoJSON({
             type: 'FeatureCollection',
             features: [
-                // High risk coastal strip
                 {
                     type: 'Feature',
+                    properties: { name: 'High Risk Zone', risk: 'high' },
                     geometry: {
                         type: 'Polygon',
                         coordinates: [[
-                            [67.0, 24.75], [67.4, 24.75], [67.4, 24.85], [67.0, 24.85]
+                            [66.95, 24.80], [67.25, 24.80], [67.25, 24.90], [66.95, 24.90], [66.95, 24.80]
                         ]]
-                    },
-                    properties: { risk: 'high', name: 'Karachi High Risk' }
+                    }
                 },
-                // Moderate risk
                 {
                     type: 'Feature',
+                    properties: { name: 'Moderate Risk', risk: 'moderate' },
                     geometry: {
                         type: 'Polygon',
                         coordinates: [[
-                            [67.4, 24.85], [67.8, 24.85], [67.8, 25.0], [67.4, 25.0]
+                            [67.25, 24.90], [67.55, 24.90], [67.55, 25.05], [67.25, 25.05], [67.25, 24.90]
                         ]]
-                    },
-                    properties: { risk: 'moderate', name: 'Karachi Moderate' }
+                    }
                 }
             ]
         }, {
             style: feature => ({
                 fillColor: feature.properties.risk === 'high' ? '#ff4444' : '#ffaa00',
-                fillOpacity: 0.5,
-                color: 'white',
+                fillOpacity: 0.6,
+                color: '#ffffff',
                 weight: 3,
-                dashArray: '10 5'
+                dashArray: '8 4'
             }),
             onEachFeature: (feature, layer) => {
-                layer.bindPopup(`<b>${feature.properties.name}</b><br>Risk: ${feature.properties.risk}`);
+                layer.bindPopup(`<b>${feature.properties.name}</b><br>Risk Level: ${feature.properties.risk}`);
             }
         }).addTo(map);
         
-        // Base map toggle functionality
-        document.querySelectorAll('.toggle-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                document.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-                
-                const layer = btn.dataset.layer;
-                map.eachLayer(l => {
-                    if(l === streetLayer || l === terrainLayer || l === satelliteLayer) {
-                        map.removeLayer(l);
-                    }
-                });
-                
-                if(layer === 'street') streetLayer.addTo(map);
-                else if(layer === 'terrain') terrainLayer.addTo(map);
-                else if(layer === 'satellite') satelliteLayer.addTo(map);
-            });
-        });
-        
-        // Story update function
+        // Update story function
         function updateStory(year) {
             const slr = slrLevels[year];
-            buildingLayer.currentSlr = slr;
-            buildingLayer.needRedraw(); // FORCE REDRAW
             
-            const exposedBuildings = sindhBuildings.filter(b => b.height < slr * 3).length;
-            const exposedPop = Math.round(exposedBuildings * 8); // Avg 8 people/building
+            // Update building colors based on SLR
+            map.eachLayer(layer => {
+                if (layer === buildingsLayer && layer.getLayers) {
+                    layer.getLayers().forEach(marker => {
+                        const height = marker.feature.properties.height;
+                        const submergence = Math.max(0, slr * 3 - height) / 4;
+                        
+                        let color = '#00ff88';
+                        if (submergence > 0.7) color = '#ff4444';
+                        else if (submergence > 0.3) color = '#ffaa00';
+                        
+                        marker.setStyle({
+                            fillColor: color,
+                            fillOpacity: 0.8,
+                            radius: Math.max(6, 18 - map.getZoom())
+                        });
+                    });
+                }
+            });
+            
+            const exposedBuildings = Math.round(25000 * slr * 2);
+            const exposedPop = Math.round(exposedBuildings * 8);
             
             document.getElementById('pop-exposed').textContent = (exposedPop/1000000).toFixed(1) + 'M';
             document.getElementById('buildings-risk').textContent = exposedBuildings.toLocaleString();
             document.getElementById('current-year').textContent = year;
             
             const stories = {
-                2030: "15cm rise threatens 2.8M. Early adaptation critical for katcha settlements.",
-                2040: "35cm inundation: 6.2M exposed. 45% buildings uninhabitable.",
-                2050: "65cm catastrophe: 11.5M displaced. Largest climate migration in Pakistan."
+                2030: "15cm rise threatens coastal katcha settlements. Early warning systems needed.",
+                2040: "35cm inundation impacts 45% buildings. Major infrastructure upgrades required.",
+                2050: "65cm sea level rise: 11.5M displaced. Largest climate migration in Pakistan."
             };
-            document.getElementById('story-title').textContent = `Sindh ${year} Crisis`;
+            document.getElementById('story-title').textContent = `Sindh ${year} Flood Risk`;
             document.getElementById('story-text').innerHTML = stories[year];
         }
         
-        // Events
+        // Slider event
         document.getElementById('year-slider').addEventListener('input', (e) => {
             currentYear = parseInt(e.target.value);
             updateStory(currentYear);
@@ -300,7 +280,6 @@
         
         // Initialize
         updateStory(2030);
-        map.flyTo([24.86, 67.05], 13, { duration: 2 });
     </script>
 </body>
 </html>
