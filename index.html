@@ -3,288 +3,249 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sindh Flood Risk Zones (2030-2050)</title>
+    <title>Sindh: From 2023 Crisis to 2050 Catastrophe</title>
     
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
     
     <style>
-        html, body {
-            margin: 0; padding: 0; height: 100%; overflow: hidden;
-            font-family: 'Inter', sans-serif; background: #0a0e2a;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html, body { height: 100%; overflow: hidden; font-family: 'Inter', sans-serif; background: #0a0e2a; }
         #map { height: 100vh; width: 100%; }
         
-        .main-title {
-            position: absolute; top: 25px; left: 50%; transform: translateX(-50%);
-            z-index: 1000; font-size: 32px; font-weight: 700; color: white;
-            text-align: center; text-shadow: 0 2px 10px rgba(0,0,0,0.5);
-            background: linear-gradient(135deg, #ff6b6b, #4ecdc4);
-            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        /* HERO - 2023 FLOODS */
+        .hero {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100vh; z-index: 1000;
+            background: linear-gradient(rgba(0,0,0,0.75), rgba(0,0,0,0.75)), 
+                        url('https://images.unsplash.com/photo-1661473816817-eb987a5d7337?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80');
+            background-size: cover; background-position: center;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            text-align: center; color: white; cursor: pointer; transition: opacity 0.5s;
+        }
+        .hero h1 { font-size: 64px; font-weight: 800; margin-bottom: 20px; text-shadow: 0 4px 20px rgba(0,0,0,0.8); }
+        .hero-subtitle { font-size: 28px; font-weight: 400; margin-bottom: 30px; opacity: 0.95; }
+        .hero-stats { display: flex; gap: 60px; font-size: 36px; font-weight: 700; margin: 40px 0; }
+        .hero-stat { text-align: center; }
+        .hero-label { font-size: 16px; opacity: 0.8; font-weight: 300; }
+        .continue-btn { 
+            background: linear-gradient(135deg, #ff6b6b, #4ecdc4); color: white; 
+            border: none; padding: 18px 40px; border-radius: 50px; font-size: 20px; 
+            font-weight: 600; cursor: pointer; box-shadow: 0 10px 30px rgba(255,107,107,0.4);
         }
         
-        .slider-panel {
-            position: absolute; bottom: 25px; left: 50%; transform: translateX(-50%);
-            z-index: 1000; background: rgba(15,20,40,0.95); backdrop-filter: blur(20px);
-            border-radius: 20px; padding: 25px; min-width: 380px; max-width: 90vw;
-            border: 1px solid rgba(255,255,255,0.15); box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+        /* STORY SECTIONS */
+        .story-panel {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100vh; z-index: 999;
+            background: rgba(10,14,42,0.98); backdrop-filter: blur(20px);
+            padding: 80px; display: flex; align-items: center; opacity: 0; transition: opacity 0.6s;
+            overflow-y: auto;
         }
-        .year-display { 
-            font-size: 28px; font-weight: 700; text-align: center; margin-bottom: 15px;
-            background: linear-gradient(135deg,#ff6b6b,#4ecdc4); 
-            -webkit-background-clip: text; -webkit-text-fill-color: transparent; 
+        .story-panel.show { opacity: 1; }
+        .story-content { max-width: 1000px; margin: 0 auto; }
+        .story-panel h2 { font-size: 52px; font-weight: 800; margin-bottom: 30px; }
+        .story-panel h2.cyan { color: #4ecdc4; }
+        .story-panel h2.orange { color: #ffaa00; }
+        .story-panel h2.red { color: #ff4444; }
+        .story-panel p { font-size: 24px; line-height: 1.7; margin-bottom: 25px; opacity: 0.95; }
+        .story-image { width: 140px; height: 140px; border-radius: 20px; margin: 25px 0; object-fit: cover; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        .nav-buttons { display: flex; gap: 20px; margin-top: 40px; }
+        .nav-btn { background: rgba(255,255,255,0.1); color: white; border: 2px solid rgba(255,255,255,0.3); padding: 15px 30px; border-radius: 30px; cursor: pointer; font-size: 16px; transition: all 0.3s; }
+        .nav-btn:hover { background: rgba(255,255,255,0.2); transform: translateY(-2px); }
+        
+        /* CONTROLS */
+        .slider-panel, .year-toggle, .legend {
+            position: fixed; z-index: 1100; background: rgba(15,20,40,0.98); 
+            backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.15); 
+            box-shadow: 0 20px 40px rgba(0,0,0,0.5); border-radius: 20px; padding: 20px;
         }
+        .slider-panel { bottom: 30px; left: 50%; transform: translateX(-50%); min-width: 380px; }
+        .year-toggle { bottom: 30px; right: 30px; width: 200px; }
+        .legend { top: 30px; right: 30px; min-width: 180px; }
+        
+        .year-display { font-size: 24px; font-weight: 700; text-align: center; margin-bottom: 15px; color: #4ecdc4; }
         .metrics-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 15px; }
-        .metric-card { 
-            background: rgba(255,255,255,0.1); padding: 15px; border-radius: 12px; 
-            text-align: center; backdrop-filter: blur(10px); 
-        }
-        .metric-value { font-size: 22px; font-weight: 700; margin-bottom: 5px; color: #4ecdc4; }
+        .metric-card { background: rgba(255,255,255,0.1); padding: 12px; border-radius: 12px; text-align: center; }
+        .metric-value { font-size: 20px; font-weight: 700; color: #4ecdc4; }
         .metric-label { font-size: 12px; opacity: 0.9; }
-        .slider { 
-            width: 100%; height: 8px; border-radius: 4px; background: rgba(255,255,255,0.2); 
-            outline: none; appearance: none; margin: 20px 0; cursor: pointer;
-        }
-        .slider::-webkit-slider-thumb { 
-            appearance: none; width: 26px; height: 26px; border-radius: 50%; 
-            background: linear-gradient(135deg,#ff6b6b,#4ecdc4); cursor: pointer; 
-            box-shadow: 0 4px 12px rgba(255,107,107,0.4); 
-        }
+        .slider { width: 100%; height: 8px; border-radius: 4px; background: rgba(255,255,255,0.2); outline: none; margin: 15px 0; }
+        .slider::-webkit-slider-thumb { width: 26px; height: 26px; border-radius: 50%; background: linear-gradient(135deg,#ff6b6b,#4ecdc4); cursor: pointer; }
         
-        .year-toggle {
-            position: absolute; bottom: 25px; right: 230px; z-index: 1000;
-            background: rgba(15,20,40,0.95); backdrop-filter: blur(20px);
-            border-radius: 16px; padding: 20px; width: 200px;
-            border: 1px solid rgba(255,255,255,0.15); box-shadow: 0 20px 40px rgba(0,0,0,0.5);
-        }
-        .year-toggle h4 { margin: 0 0 15px 0; font-size: 15px; text-align: center; opacity: 0.9; }
-        .year-btn {
-            width: 100%; background: rgba(255,255,255,0.15); color: white; 
-            border: none; padding: 12px; margin: 5px 0; border-radius: 10px; 
-            cursor: pointer; font-size: 14px; font-family: 'Inter', sans-serif;
-            transition: all 0.3s ease;
-        }
-        .year-btn:hover, .year-btn.active { 
-            background: linear-gradient(135deg,#ff6b6b,#4ecdc4); 
-            transform: translateY(-1px); box-shadow: 0 4px 15px rgba(255,107,107,0.4);
-        }
+        .year-btn { width: 100%; background: rgba(255,255,255,0.15); color: white; border: none; padding: 12px; margin: 5px 0; border-radius: 10px; cursor: pointer; font-size: 14px; transition: all 0.3s; }
+        .year-btn:hover, .year-btn.active { background: linear-gradient(135deg,#ff6b6b,#4ecdc4); transform: translateY(-1px); }
         
-        /* NEW LEGEND - Top Right */
-        .legend {
-            position: absolute; top: 90px; right: 25px; z-index: 1000;
-            background: rgba(15,20,40,0.95); backdrop-filter: blur(20px);
-            border-radius: 16px; padding: 20px; min-width: 180px;
-            border: 1px solid rgba(255,255,255,0.15); box-shadow: 0 20px 40px rgba(0,0,0,0.5);
-        }
-        .legend h4 { margin: 0 0 15px 0; font-size: 15px; text-align: center; opacity: 0.9; }
-        .legend-row {
-            display: flex; align-items: center; margin: 10px 0; font-size: 13px;
-        }
-        .legend-color {
-            width: 24px; height: 24px; border-radius: 4px; margin-right: 12px;
-            border: 2px solid rgba(255,255,255,0.3);
-        }
-        
-        .leaflet-control-layers {
-            border-radius: 12px !important; background: rgba(20,25,45,0.98) !important;
-            backdrop-filter: blur(15px) !important; border: 1px solid rgba(255,255,255,0.1) !important;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.4) !important; margin-top: 60px !important;
-        }
-        .leaflet-control-layers label { color: white !important; font-family: 'Inter', sans-serif !important; }
-        
-        .leaflet-popup-content-wrapper {
-            background: linear-gradient(135deg, #f5f5dc, #e8d9b8) !important;
-            border: 2px solid #d4c7a0 !important; border-radius: 12px !important;
-            box-shadow: 0 8px 25px rgba(0,0,0,0.3) !important;
-        }
-        .leaflet-popup-content { 
-            font-family: 'Inter', sans-serif !important; color: #4a3f2a !important; 
-            text-align: center !important; padding: 10px !important;
-        }
+        .legend strong { display: block; margin-bottom: 15px; font-size: 15px; text-align: center; opacity: 0.9; }
+        .legend-row { display: flex; align-items: center; margin: 10px 0; font-size: 13px; }
+        .legend-color { width: 24px; height: 24px; border-radius: 4px; margin-right: 12px; border: 2px solid rgba(255,255,255,0.3); }
         
         @media (max-width: 768px) {
-            .main-title { font-size: 24px; top: 15px; }
-            .slider-panel, .year-toggle, .legend { position: relative; margin: 10px; width: auto !important; right: 0 !important; }
-            .metrics-grid { grid-template-columns: 1fr; }
-            .year-toggle { right: 0 !important; }
+            .hero h1 { font-size: 40px; } .hero-subtitle { font-size: 20px; }
+            .hero-stats { flex-direction: column; gap: 20px; }
+            .story-panel { padding: 40px 20px; }
+            .story-panel h2 { font-size: 36px; } .story-panel p { font-size: 18px; }
         }
     </style>
 </head>
 <body>
     <div id="map"></div>
     
-    <div class="main-title">Sindh Flood Risk Zones (2030-2050)</div>
-    
-    <!-- NEW LEGEND -->
+    <!-- LEGEND -->
     <div class="legend">
-        <h4>Inundation Legend</h4>
-        <div class="legend-row">
-            <div class="legend-color" style="background: #4ecdc4;"></div>
-            <span>2030 Baseline</span>
+        <strong>Future Projections</strong>
+        <div class="legend-row"><div class="legend-color" style="background: #4ecdc4;"></div>2030 Baseline</div>
+        <div class="legend-row"><div class="legend-color" style="background: #ffaa00;"></div>2040 Risk Zones</div>
+        <div class="legend-row"><div class="legend-color" style="background: #ff4444;"></div>2050 High Risk</div>
+    </div>
+    
+    <!-- HERO: 2023 SINDH FLOODS -->
+    <div class="hero" onclick="startStory()">
+        <h1>2023 Sindh Floods</h1>
+        <div class="hero-subtitle">12.3M affected • 1,000+ lives lost • Sindh worst-hit</div>
+        <div class="hero-stats">
+            <div class="hero-stat"><div>12.3M</div><div class="hero-label">People Affected</div></div>
+            <div class="hero-stat"><div>430K</div><div class="hero-label">Livestock Lost</div></div>
+            <div class="hero-stat"><div>3.7M</div><div class="hero-label">Acres Crops</div></div>
         </div>
-        <div class="legend-row">
-            <div class="legend-color" style="background: #ffaa00;"></div>
-            <span>2040 Risk Zones</span>
-        </div>
-        <div class="legend-row">
-            <div class="legend-color" style="background: #ff4444;"></div>
-            <span>2050 High Risk</span>
+        <button class="continue-btn" onclick="startStory(event)">See Future Projections →</button>
+    </div>
+    
+    <!-- STORY 1: 2030 BASELINE -->
+    <div class="story-panel" id="story1">
+        <div class="story-content">
+            <h2 class="cyan">🌊 2030: Inundation Baseline</h2>
+            <img class="story-image" src="https://images.unsplash.com/photo-1580130684518-6f4d5514de2d?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80" alt="Coastal inundation">
+            <p>Sea levels rise <strong>15cm</strong>. First permanent inundation begins. <strong>450K people</strong> and <strong>21K buildings</strong> now live in baseline flood zones.</p>
+            <p>Coastal villages become semi-permanent wetlands. Salinity destroys agriculture. Freshwater access becomes critical issue.</p>
+            <div class="nav-buttons">
+                <button class="nav-btn" onclick="showStory(1)">Next: 2040 →</button>
+            </div>
         </div>
     </div>
     
+    <!-- STORY 2: 2040 RISK ZONES -->
+    <div class="story-panel" id="story2">
+        <div class="story-content">
+            <h2 class="orange">⚠️ 2040: Risk Zones Expand</h2>
+            <img class="story-image" src="https://images.unsplash.com/photo-1661473816817-eb987a5d7337?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80" alt="Expanding flood risk">
+            <p><strong>35cm sea level rise</strong>. Risk zones triple in size. <strong>1.2M people</strong> and <strong>56K buildings</strong> now in high-risk areas. Karachi's coastal defenses fail.</p>
+            <p>Major infrastructure relocation required. Embankments breached annually. Economic migration accelerates.</p>
+            <div class="nav-buttons">
+                <button class="nav-btn" onclick="showStory(0)">← 2030</button>
+                <button class="nav-btn" onclick="showStory(2)">2050 →</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- STORY 3: 2050 HIGH RISK -->
+    <div class="story-panel" id="story3">
+        <div class="story-content">
+            <h2 class="red">🚨 2050: Catastrophic Inundation</h2>
+            <img class="story-image" src="https://images.unsplash.com/photo-1614800081266-3892778d7591?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80" alt="Future flood catastrophe">
+            <p><strong>65cm sea level rise</strong>. <strong>2.5M people homeless</strong>. <strong>115K buildings destroyed</strong>. Entire coastal communities permanently submerged.</p>
+            <p>Sindh's coastal economy collapses. Mass displacement to inland cities. Climate refugees overwhelm infrastructure.</p>
+            <div class="nav-buttons">
+                <button class="nav-btn" onclick="showStory(1)">← 2040</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- CONTROLS -->
     <div class="slider-panel">
         <div class="year-display" id="current-year">2030</div>
         <input type="range" id="year-slider" class="slider" min="2030" max="2050" step="10" value="2030">
         <div class="metrics-grid">
-            <div class="metric-card">
-                <div class="metric-value" id="pop-affected">450K</div>
-                <div class="metric-label">People Affected</div>
-            </div>
-            <div class="metric-card">
-                <div class="metric-value" id="buildings-affected">21K</div>
-                <div class="metric-label">Buildings Affected</div>
-            </div>
+            <div class="metric-card"><div class="metric-value" id="pop-affected">450K</div><div class="metric-label">People</div></div>
+            <div class="metric-card"><div class="metric-value" id="buildings-affected">21K</div><div class="metric-label">Buildings</div></div>
         </div>
     </div>
     
     <div class="year-toggle">
-        <h4>Select Year</h4>
+        <h4>Layer Controls</h4>
         <button class="year-btn active" data-year="2030">🌊 2030 Baseline</button>
         <button class="year-btn" data-year="2040">🌊 2040 Risk</button>
         <button class="year-btn" data-year="2050">🌊 2050 Risk</button>
     </div>
 
     <script>
-        let map = null;
-        let currentLayer = null;
+        let map, currentLayer, currentStoryIndex = -1;
+        const storyPanels = ['story1', 'story2', 'story3'];
+        const storyYears = ['2030', '2040', '2050'];
         
-        // ESRI World Imagery
-        const esriSatellite = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-            attribution: '© Esri, Maxar, Earthstar Geographics'
-        });
+        const esriSatellite = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}');
         
         function initMap() {
-            map = L.map('map', {
-                zoomControl: true,
-                zoomControlPosition: 'topright'
-            }).setView([24.86, 67.05], 12);
-            
+            map = L.map('map').setView([24.86, 67.05], 12);
             esriSatellite.addTo(map);
-            
-            const streetLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png');
-            const terrainLayer = L.tileLayer('https://{s}.terrain.cartocdn.com/rastertiles/voyager_nolabels/{z}/{x}/{y}{r}.png');
-            
-            L.control.layers({
-                "🛰️ Satellite": esriSatellite,
-                "🌆 Street": streetLayer,
-                "🏔️ Terrain": terrainLayer
-            }).addTo(map);
         }
         
-        async function loadInundationLayer(year) {
+        async function loadLayer(year) {
             try {
                 const filename = year === '2030' ? 'inundation_baseline.json' : `risk_zone_${year}.json`;
                 const response = await fetch(filename);
-                
-                if (!response.ok) {
-                    showDemoLayer(year);
-                    return;
-                }
-                
+                if (!response.ok) throw new Error();
                 const data = await response.json();
+                
                 if (currentLayer) map.removeLayer(currentLayer);
-                
                 currentLayer = L.geoJSON(data, {
-                    style: feature => {
-                        const risk = feature.properties?.risk_level || feature.properties?.risk || 'low';
-                        const colors = { 
-                            low: '#00ff88', 
-                            moderate: '#ffaa00', 
-                            high: '#ff4444',
-                            baseline: '#4ecdc4'
-                        };
-                        return {
-                            fillColor: colors[risk] || (year === '2030' ? '#4ecdc4' : year === '2040' ? '#ffaa00' : '#ff4444'),
-                            fillOpacity: 0.6,
-                            color: '#ffffff',
-                            weight: 2
-                        };
-                    },
-                    onEachFeature: (feature, layer) => {
-                        const props = feature.properties || {};
-                        layer.bindPopup(`
-                            <b>${props.name || year + ' Flood Zone'}</b><br>
-                            Risk: ${props.risk_level || props.risk || 'N/A'}<br>
-                            Year: ${year}
-                        `);
-                    }
+                    style: feature => ({
+                        fillColor: year === '2030' ? '#4ecdc4' : year === '2040' ? '#ffaa00' : '#ff4444',
+                        fillOpacity: 0.6, color: '#ffffff', weight: 2
+                    })
                 }).addTo(map);
-                
-                map.fitBounds(currentLayer.getBounds());
-                
-            } catch (error) {
-                console.error('Layer error:', error);
+                if (currentLayer.getBounds().isValid()) map.fitBounds(currentLayer.getBounds());
+            } catch {
                 showDemoLayer(year);
             }
         }
         
         function showDemoLayer(year) {
             if (currentLayer) map.removeLayer(currentLayer);
-            
             const color = year === '2030' ? '#4ecdc4' : year === '2040' ? '#ffaa00' : '#ff4444';
-            
             currentLayer = L.geoJSON({
                 type: 'FeatureCollection',
-                features: [{
-                    type: 'Feature',
-                    properties: { name: `${year} Coastal Risk`, risk: 'high' },
-                    geometry: {
-                        type: 'Polygon',
-                        coordinates: [[[66.95, 24.80], [67.25, 24.80], [67.25, 24.90], [66.95, 24.90]]]
-                    }
-                }]
-            }, {
-                style: { fillColor: color, fillOpacity: 0.6, color: '#ffffff', weight: 3 }
-            }).addTo(map);
-            
+                features: [{type: 'Feature', geometry: {
+                    type: 'Polygon', coordinates: [[[66.95, 24.80], [67.25, 24.80], [67.25, 24.90], [66.95, 24.90]]]
+                }}]
+            }, {style: {fillColor: color, fillOpacity: 0.6, color: '#ffffff', weight: 3}}).addTo(map);
             map.fitBounds(currentLayer.getBounds());
         }
         
-        const metricsData = {
-            2030: { pop: 450000, buildings: 21000 },
-            2040: { pop: 1200000, buildings: 56000 },
-            2050: { pop: 2500000, buildings: 115000 }
-        };
-        
+        const metricsData = {2030: {pop: 450000, buildings: 21000}, 2040: {pop: 1200000, buildings: 56000}, 2050: {pop: 2500000, buildings: 115000}};
         function updateMetrics(year) {
-            const data = metricsData[year] || metricsData['2030'];
+            const data = metricsData[year];
             document.getElementById('pop-affected').textContent = (data.pop/1000).toLocaleString() + 'K';
             document.getElementById('buildings-affected').textContent = (data.buildings/1000).toLocaleString() + 'K';
             document.getElementById('current-year').textContent = year;
         }
         
-        // Initialize
-        document.addEventListener('DOMContentLoaded', () => {
-            initMap();
-            loadInundationLayer('2030');
-            updateMetrics('2030');
-        });
+        function startStory(e) {
+            if (e) e.stopPropagation();
+            document.querySelector('.hero').style.display = 'none';
+            showStory(0);
+        }
+        
+        function showStory(index) {
+            document.querySelectorAll('.story-panel').forEach(p => p.classList.remove('show'));
+            document.getElementById(storyPanels[index]).classList.add('show');
+            currentStoryIndex = index;
+            loadLayer(storyYears[index]);
+            updateMetrics(storyYears[index]);
+            document.querySelectorAll('.year-btn').forEach(b => b.classList.remove('active'));
+            document.querySelector(`[data-year="${storyYears[index]}"]`).classList.add('active');
+        }
+        
+        document.addEventListener('DOMContentLoaded', initMap);
         
         document.querySelectorAll('.year-btn').forEach(btn => {
             btn.addEventListener('click', () => {
                 document.querySelectorAll('.year-btn').forEach(b => b.classList.remove('active'));
                 btn.classList.add('active');
-                loadInundationLayer(btn.dataset.year);
+                loadLayer(btn.dataset.year);
                 updateMetrics(btn.dataset.year);
             });
         });
         
-        document.getElementById('year-slider').addEventListener('input', (e) => {
-            updateMetrics(e.target.value);
-        });
+        document.getElementById('year-slider').addEventListener('input', e => updateMetrics(e.target.value));
     </script>
 </body>
 </html>
-
-
