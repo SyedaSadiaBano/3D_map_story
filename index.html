@@ -146,21 +146,25 @@
 <body>
     <!-- LEFT SIDEBAR -->
     <div class="sidebar" id="sidebar">
-        <button class="sidebar-toggle" onclick="toggleSidebar()" title="Toggle Storylines">📖</button>
-        <h3>Future Flood Storylines</h3>
-        <div class="storyline cyan active" data-year="2030" onclick="selectStoryline(this, 0)">
-            <h4>🌊 2030 Baseline</h4>
-            <p>15cm sea rise. 450K people & 21K buildings in permanent flood zones. Villages become wetlands.</p>
-        </div>
-        <div class="storyline orange" data-year="2040" onclick="selectStoryline(this, 1)">
-            <h4>⚠️ 2040 Risk Zones</h4>
-            <p>35cm rise. 1.2M people & 56K buildings at risk. Karachi defenses fail annually.</p>
-        </div>
-        <div class="storyline red" data-year="2050" onclick="selectStoryline(this, 2)">
-            <h4>🚨 2050 Catastrophe</h4>
-            <p>65cm rise. 2.5M homeless, 115K buildings gone. Coastal economy collapses.</p>
-        </div>
+    <button class="sidebar-toggle" id="sidebarBtn" title="Toggle Storylines">📖</button>
+    <h3>Future Flood Storylines</h3>
+
+    <div class="storyline cyan active" data-year="2030" onclick="selectStoryline(this, 0)">
+        <h4>🌊 2030 Baseline</h4>
+        <p>15cm sea rise. 450K people & 21K buildings in permanent flood zones. Villages become wetlands.</p>
     </div>
+
+    <div class="storyline orange" data-year="2040" onclick="selectStoryline(this, 1)">
+        <h4>⚠️ 2040 Risk Zones</h4>
+        <p>35cm rise. 1.2M people & 56K buildings at risk. Karachi defenses fail annually.</p>
+    </div>
+
+    <div class="storyline red" data-year="2050" onclick="selectStoryline(this, 2)">
+        <h4>🚨 2050 Catastrophe</h4>
+        <p>65cm rise. 2.5M homeless, 115K buildings gone. Coastal economy collapses.</p>
+    </div>
+</div>
+
     
     <!-- MAP CONTAINER -->
     <div class="map-container">
@@ -294,11 +298,20 @@
             }, {style: {fillColor: color, fillOpacity: 0.7, color: '#ffffff', weight: 3}});
         }
         
-        function toggleSidebar() {
-            const sidebar = document.getElementById('sidebar');
-            sidebar.classList.toggle('collapsed');
-            setTimeout(() => map.invalidateSize(), 300); // Fix map after sidebar toggle
-        }
+       document.addEventListener("DOMContentLoaded", () => {
+    const sidebar = document.getElementById("sidebar");
+    const toggleBtn = document.getElementById("sidebarBtn");
+
+    toggleBtn.addEventListener("click", () => {
+        sidebar.classList.toggle("collapsed");
+
+        // Fix Leaflet map after sidebar transition
+        sidebar.addEventListener("transitionend", () => {
+            map.invalidateSize();
+        }, { once: true });
+    });
+});
+
         
         function selectStoryline(element, index) {
             document.querySelectorAll('.storyline').forEach(el => el.classList.remove('active'));
