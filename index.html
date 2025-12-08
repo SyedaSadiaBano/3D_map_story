@@ -53,7 +53,7 @@
         }
         
         .year-toggle {
-            position: absolute; bottom: 25px; right: 25px; z-index: 1000;
+            position: absolute; bottom: 25px; right: 230px; z-index: 1000;
             background: rgba(15,20,40,0.95); backdrop-filter: blur(20px);
             border-radius: 16px; padding: 20px; width: 200px;
             border: 1px solid rgba(255,255,255,0.15); box-shadow: 0 20px 40px rgba(0,0,0,0.5);
@@ -70,10 +70,26 @@
             transform: translateY(-1px); box-shadow: 0 4px 15px rgba(255,107,107,0.4);
         }
         
+        /* NEW LEGEND - Top Right */
+        .legend {
+            position: absolute; top: 90px; right: 25px; z-index: 1000;
+            background: rgba(15,20,40,0.95); backdrop-filter: blur(20px);
+            border-radius: 16px; padding: 20px; min-width: 180px;
+            border: 1px solid rgba(255,255,255,0.15); box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+        }
+        .legend h4 { margin: 0 0 15px 0; font-size: 15px; text-align: center; opacity: 0.9; }
+        .legend-row {
+            display: flex; align-items: center; margin: 10px 0; font-size: 13px;
+        }
+        .legend-color {
+            width: 24px; height: 24px; border-radius: 4px; margin-right: 12px;
+            border: 2px solid rgba(255,255,255,0.3);
+        }
+        
         .leaflet-control-layers {
             border-radius: 12px !important; background: rgba(20,25,45,0.98) !important;
             backdrop-filter: blur(15px) !important; border: 1px solid rgba(255,255,255,0.1) !important;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.4) !important;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.4) !important; margin-top: 60px !important;
         }
         .leaflet-control-layers label { color: white !important; font-family: 'Inter', sans-serif !important; }
         
@@ -89,8 +105,9 @@
         
         @media (max-width: 768px) {
             .main-title { font-size: 24px; top: 15px; }
-            .slider-panel, .year-toggle { position: relative; margin: 10px; width: auto !important; }
+            .slider-panel, .year-toggle, .legend { position: relative; margin: 10px; width: auto !important; right: 0 !important; }
             .metrics-grid { grid-template-columns: 1fr; }
+            .year-toggle { right: 0 !important; }
         }
     </style>
 </head>
@@ -98,6 +115,23 @@
     <div id="map"></div>
     
     <div class="main-title">Sindh Flood Risk Zones (2030-2050)</div>
+    
+    <!-- NEW LEGEND -->
+    <div class="legend">
+        <h4>Inundation Legend</h4>
+        <div class="legend-row">
+            <div class="legend-color" style="background: #4ecdc4;"></div>
+            <span>2030 Baseline</span>
+        </div>
+        <div class="legend-row">
+            <div class="legend-color" style="background: #ffaa00;"></div>
+            <span>2040 Risk Zones</span>
+        </div>
+        <div class="legend-row">
+            <div class="legend-color" style="background: #ff4444;"></div>
+            <span>2050 High Risk</span>
+        </div>
+    </div>
     
     <div class="slider-panel">
         <div class="year-display" id="current-year">2030</div>
@@ -115,7 +149,7 @@
     </div>
     
     <div class="year-toggle">
-        <h4>Inundation Layers</h4>
+        <h4>Select Year</h4>
         <button class="year-btn active" data-year="2030">🌊 2030 Baseline</button>
         <button class="year-btn" data-year="2040">🌊 2040 Risk</button>
         <button class="year-btn" data-year="2050">🌊 2050 Risk</button>
@@ -125,22 +159,19 @@
         let map = null;
         let currentLayer = null;
         
-        // ESRI World Imagery - GUARANTEED WORKING [web:95][web:96]
+        // ESRI World Imagery
         const esriSatellite = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-            attribution: '© Esri, Maxar, Earthstar Geographics, USDA FSA, USGS, Aerogrid, IGN, IGP, and the GIS User Community'
+            attribution: '© Esri, Maxar, Earthstar Geographics'
         });
         
-        // Initialize map
         function initMap() {
             map = L.map('map', {
                 zoomControl: true,
                 zoomControlPosition: 'topright'
-            }).setView([24.86, 67.05], 12); // Karachi coast
+            }).setView([24.86, 67.05], 12);
             
-            // Add ESRI Satellite IMMEDIATELY
             esriSatellite.addTo(map);
             
-            // Base layer control
             const streetLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png');
             const terrainLayer = L.tileLayer('https://{s}.terrain.cartocdn.com/rastertiles/voyager_nolabels/{z}/{x}/{y}{r}.png');
             
@@ -151,14 +182,12 @@
             }).addTo(map);
         }
         
-        // Load inundation layer
         async function loadInundationLayer(year) {
             try {
                 const filename = year === '2030' ? 'inundation_baseline.json' : `risk_zone_${year}.json`;
                 const response = await fetch(filename);
                 
                 if (!response.ok) {
-                    // Fallback demo data
                     showDemoLayer(year);
                     return;
                 }
@@ -169,9 +198,14 @@
                 currentLayer = L.geoJSON(data, {
                     style: feature => {
                         const risk = feature.properties?.risk_level || feature.properties?.risk || 'low';
-                        const colors = { low: '#00ff88', moderate: '#ffaa00', high: '#ff4444' };
+                        const colors = { 
+                            low: '#00ff88', 
+                            moderate: '#ffaa00', 
+                            high: '#ff4444',
+                            baseline: '#4ecdc4'
+                        };
                         return {
-                            fillColor: colors[risk] || '#ff6b6b',
+                            fillColor: colors[risk] || (year === '2030' ? '#4ecdc4' : year === '2040' ? '#ffaa00' : '#ff4444'),
                             fillOpacity: 0.6,
                             color: '#ffffff',
                             weight: 2
@@ -195,36 +229,28 @@
             }
         }
         
-        // Demo fallback layer
         function showDemoLayer(year) {
             if (currentLayer) map.removeLayer(currentLayer);
             
-            const demoData = {
+            const color = year === '2030' ? '#4ecdc4' : year === '2040' ? '#ffaa00' : '#ff4444';
+            
+            currentLayer = L.geoJSON({
                 type: 'FeatureCollection',
                 features: [{
                     type: 'Feature',
-                    properties: { name: `${year} Coastal Risk`, risk: year },
+                    properties: { name: `${year} Coastal Risk`, risk: 'high' },
                     geometry: {
                         type: 'Polygon',
-                        coordinates: [[[66.95 + Math.random()*0.1, 24.80 + Math.random()*0.1], 
-                                     [67.25 + Math.random()*0.1, 24.80 + Math.random()*0.1], 
-                                     [67.25 + Math.random()*0.1, 24.90 + Math.random()*0.1], 
-                                     [66.95 + Math.random()*0.1, 24.90 + Math.random()*0.1]]]
+                        coordinates: [[[66.95, 24.80], [67.25, 24.80], [67.25, 24.90], [66.95, 24.90]]]
                     }
                 }]
-            };
-            
-            currentLayer = L.geoJSON(demoData, {
-                style: { 
-                    fillColor: year === '2050' ? '#ff4444' : year === '2040' ? '#ffaa00' : '#4ecdc4',
-                    fillOpacity: 0.6, color: '#ffffff', weight: 3 
-                }
+            }, {
+                style: { fillColor: color, fillOpacity: 0.6, color: '#ffffff', weight: 3 }
             }).addTo(map);
             
             map.fitBounds(currentLayer.getBounds());
         }
         
-        // Metrics
         const metricsData = {
             2030: { pop: 450000, buildings: 21000 },
             2040: { pop: 1200000, buildings: 56000 },
@@ -238,14 +264,13 @@
             document.getElementById('current-year').textContent = year;
         }
         
-        // Initialize when DOM is ready
+        // Initialize
         document.addEventListener('DOMContentLoaded', () => {
             initMap();
             loadInundationLayer('2030');
             updateMetrics('2030');
         });
         
-        // Event listeners
         document.querySelectorAll('.year-btn').forEach(btn => {
             btn.addEventListener('click', () => {
                 document.querySelectorAll('.year-btn').forEach(b => b.classList.remove('active'));
@@ -261,4 +286,5 @@
     </script>
 </body>
 </html>
+
 
