@@ -53,12 +53,26 @@
         .storyline { 
             background: rgba(255,255,255,0.05); padding: 20px; margin-bottom: 15px; 
             border-radius: 16px; cursor: pointer; transition: all 0.3s; border: 1px solid rgba(255,255,255,0.1);
+            overflow: hidden;
         }
         .storyline:hover { background: rgba(255,255,255,0.15); transform: translateX(5px); }
         .storyline.active { background: linear-gradient(135deg, rgba(78,205,196,0.2), rgba(255,107,107,0.2)); border-color: #4ecdc4; }
         .storyline h4 { font-size: 18px; font-weight: 700; margin-bottom: 10px; }
         .storyline.cyan h4 { color: #4ecdc4; } .storyline.orange h4 { color: #ffaa00; } .storyline.red h4 { color: #ff4444; }
         .storyline p { font-size: 14px; opacity: 0.9; line-height: 1.5; }
+        
+        /* DETAILED DATA STYLES */
+        .detailed-data {
+            display: none; margin-top: 15px; animation: slideDown 0.3s ease-out;
+        }
+        @keyframes slideDown {
+            from { opacity: 0; max-height: 0; }
+            to { opacity: 1; max-height: 300px; }
+        }
+        .detailed-data h5 { margin-bottom: 10px; font-size: 16px; font-weight: 700; }
+        .detailed-data ul { list-style: none; padding: 0; font-size: 14px; line-height: 1.6; }
+        .detailed-data li { padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,0.1); }
+        .detailed-data strong { color: #ffffff; }
         
         /* STORY SECTIONS */
         .story-panel {
@@ -125,14 +139,53 @@
         <div class="storyline cyan active" data-year="2030" onclick="selectStoryline(this, 0)">
             <h4>🌊 2030 Baseline</h4>
             <p>15cm sea rise. 450K people & 21K buildings in permanent flood zones. Villages become wetlands.</p>
+            <!-- DETAILED DATA -->
+            <div class="detailed-data" id="details-0">
+                <div style="padding: 15px; background: rgba(78,205,196,0.15); border-radius: 12px; border-left: 4px solid #4ecdc4;">
+                    <h5 style="color: #4ecdc4; margin-bottom: 10px;">Detailed Impact:</h5>
+                    <ul>
+                        <li><strong>Sea Level Rise:</strong> 15cm permanent inundation</li>
+                        <li><strong>Population:</strong> 450K people displaced</li>
+                        <li><strong>Buildings:</strong> 21K structures in flood zones</li>
+                        <li><strong>Agriculture:</strong> Salinity destroys coastal farms</li>
+                        <li><strong>Infrastructure:</strong> Villages become wetlands</li>
+                    </ul>
+                </div>
+            </div>
         </div>
         <div class="storyline orange" data-year="2040" onclick="selectStoryline(this, 1)">
             <h4>⚠️ 2040 Risk Zones</h4>
             <p>35cm rise. 1.2M people & 56K buildings at risk. Karachi defenses fail annually.</p>
+            <!-- DETAILED DATA -->
+            <div class="detailed-data" id="details-1">
+                <div style="padding: 15px; background: rgba(255,170,0,0.15); border-radius: 12px; border-left: 4px solid #ffaa00;">
+                    <h5 style="color: #ffaa00; margin-bottom: 10px;">Detailed Impact:</h5>
+                    <ul>
+                        <li><strong>Sea Level Rise:</strong> 35cm - risk zones triple</li>
+                        <li><strong>Population:</strong> 1.2M people vulnerable</li>
+                        <li><strong>Buildings:</strong> 56K structures threatened</li>
+                        <li><strong>Infrastructure:</strong> Karachi defenses breached annually</li>
+                        <li><strong>Economy:</strong> Major relocation required</li>
+                    </ul>
+                </div>
+            </div>
         </div>
         <div class="storyline red" data-year="2050" onclick="selectStoryline(this, 2)">
             <h4>🚨 2050 Catastrophe</h4>
             <p>65cm rise. 2.5M homeless, 115K buildings gone. Coastal economy collapses.</p>
+            <!-- DETAILED DATA -->
+            <div class="detailed-data" id="details-2">
+                <div style="padding: 15px; background: rgba(255,68,68,0.15); border-radius: 12px; border-left: 4px solid #ff4444;">
+                    <h5 style="color: #ff4444; margin-bottom: 10px;">Catastrophic Impact:</h5>
+                    <ul>
+                        <li><strong>Sea Level Rise:</strong> 65cm - total submersion</li>
+                        <li><strong>Population:</strong> 2.5M people homeless</li>
+                        <li><strong>Buildings:</strong> 115K structures destroyed</li>
+                        <li><strong>Economy:</strong> Coastal economy collapses</li>
+                        <li><strong>Migration:</strong> Mass displacement inland</li>
+                    </ul>
+                </div>
+            </div>
         </div>
     </div>
     
@@ -261,14 +314,26 @@
             sidebar.classList.toggle('open');
         }
         
+        // ✅ NEW selectStoryline - Shows details UNDER div, NO map changes
         function selectStoryline(element, index) {
             // Update active storyline
-            document.querySelectorAll('.storyline').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.storyline').forEach(el => {
+                el.classList.remove('active');
+                // Hide all detailed data
+                const details = el.querySelector('.detailed-data');
+                if (details) details.style.display = 'none';
+            });
             element.classList.add('active');
             
-            // Show corresponding story panel + layer
-            showStory(index);
-            loadLayer(storyYears[index]);
+            // Show detailed data UNDER this specific div
+            const detailsDiv = document.getElementById(`details-${index}`);
+            detailsDiv.style.display = 'block';
+            
+            // Update metrics ONLY (no map/layer changes)
+            updateMetrics(storyYears[index]);
+            
+            // Smooth scroll to show expanded content
+            element.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         }
         
         const metricsData = {2030: {pop: 450000, buildings: 21000}, 2040: {pop: 1200000, buildings: 56000}, 2050: {pop: 2500000, buildings: 115000}};
