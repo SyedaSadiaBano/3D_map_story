@@ -23,6 +23,9 @@
             display: flex; flex-direction: column; justify-content: center; align-items: center;
             text-align: center; color: white; cursor: pointer; transition: opacity 0.5s;
         }
+        p{
+            color: #fff;
+        }
         .hero h1 { font-size: 64px; font-weight: 800; margin-bottom: 20px; text-shadow: 0 4px 20px rgba(0,0,0,0.8); }
         .hero-subtitle { font-size: 28px; font-weight: 400; margin-bottom: 30px; opacity: 0.95; }
         .hero-stats { display: flex; gap: 60px; font-size: 36px; font-weight: 700; margin: 40px 0; }
@@ -118,6 +121,9 @@
         .legend strong { display: block; margin-bottom: 15px; font-size: 15px; text-align: center; opacity: 0.9; color: #fff;}
         .legend-row { display: flex; align-items: center; margin: 10px 0; font-size: 13px; color: #fff;}
         .legend-color { width: 24px; height: 24px; border-radius: 4px; margin-right: 12px; border: 2px solid rgba(255,255,255,0.3); }
+        li {
+            color: #fff;
+        }
         
         @media (max-width: 768px) {
             .hero h1 { font-size: 40px; } .hero-subtitle { font-size: 20px; }
@@ -253,8 +259,8 @@
         <div class="year-display" id="current-year">2030</div>
         <input type="range" id="year-slider" class="slider" min="2030" max="2050" step="10" value="2030">
         <div class="metrics-grid">
-            <div class="metric-card"><div class="metric-value" id="pop-affected">450K</div><div class="metric-label">People</div></div>
-            <div class="metric-card"><div class="metric-value" id="buildings-affected">21K</div><div class="metric-label">Buildings</div></div>
+            <div class="metric-card"><div class="metric-value" id="pop-affected">450K</div><div class="metric-label" style={color: #fff;}>People</div></div>
+            <div class="metric-card"><div class="metric-value" id="buildings-affected">21K</div><div class="metric-label" style={color: #fff;}>Buildings</div></div>
         </div>
     </div>
     
