@@ -53,6 +53,40 @@
         .nav-btn { background: rgba(255,255,255,0.1); color: white; border: 2px solid rgba(255,255,255,0.3); padding: 15px 30px; border-radius: 30px; cursor: pointer; font-size: 16px; transition: all 0.3s; }
         .nav-btn:hover { background: rgba(255,255,255,0.2); transform: translateY(-2px); }
         
+        /* SCROLL NARRATIVE PANEL */
+        #narrative-panel {
+            position: fixed; left: 30px; top: 120px; width: 380px; height: calc(100vh - 160px);
+            background: rgba(15,20,40,0.95); backdrop-filter: blur(25px); border-radius: 24px;
+            padding: 35px; color: white; overflow-y: auto; z-index: 1200;
+            border: 1px solid rgba(255,255,255,0.15); box-shadow: 0 25px 50px rgba(0,0,0,0.6);
+            scroll-behavior: smooth;
+        }
+        .narrative-section {
+            min-height: 100vh; padding: 40px 0; border-bottom: 1px solid rgba(255,255,255,0.1);
+            opacity: 0.7; transition: all 0.5s ease;
+        }
+        .narrative-section.active { opacity: 1; }
+        .narrative-section h3 { 
+            font-size: 28px; font-weight: 800; margin-bottom: 20px; 
+            color: #4ecdc4; text-shadow: 0 2px 10px rgba(78,205,196,0.3);
+        }
+        .narrative-section h3.orange { color: #ffaa00; text-shadow: 0 2px 10px rgba(255,170,0,0.3); }
+        .narrative-section h3.red { color: #ff4444; text-shadow: 0 2px 10px rgba(255,68,68,0.3); }
+        .narrative-section p { font-size: 18px; line-height: 1.7; margin-bottom: 20px; }
+        .comparison-caption { 
+            background: rgba(255,255,255,0.1); padding: 15px; border-radius: 12px; 
+            font-style: italic; font-size: 16px; margin-top: 25px; text-align: center;
+        }
+        
+        /* CAPTION BELOW MAP */
+        #comparison-caption {
+            position: fixed; bottom: 120px; left: 50%; transform: translateX(-50%);
+            background: rgba(15,20,40,0.9); backdrop-filter: blur(20px);
+            color: #ccc; font-size: 16px; padding: 12px 25px; border-radius: 20px;
+            z-index: 1150; max-width: 700px; text-align: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+        
         /* CONTROLS */
         .slider-panel, .year-toggle, .legend {
             position: fixed; z-index: 1100; background: rgba(15,20,40,0.98); 
@@ -83,6 +117,8 @@
             .hero-stats { flex-direction: column; gap: 20px; }
             .story-panel { padding: 40px 20px; }
             .story-panel h2 { font-size: 36px; } .story-panel p { font-size: 18px; }
+            #narrative-panel { position: relative; left: auto; top: auto; width: 100%; height: 300px; margin: 20px 0; }
+            #comparison-caption { position: relative; bottom: auto; margin: 15px 0; }
         }
     </style>
 </head>
@@ -96,6 +132,25 @@
         <div class="legend-row"><div class="legend-color" style="background: #ffaa00;"></div>2040 Risk Zones</div>
         <div class="legend-row"><div class="legend-color" style="background: #ff4444;"></div>2050 High Risk</div>
     </div>
+
+    <!-- SCROLL NARRATIVE PANEL -->
+    <div id="narrative-panel">
+        <div class="narrative-section active" data-index="0">
+            <h3 class="cyan">2030 vs 2040</h3>
+            <p><strong>2030:</strong> Sea levels rise 15cm. 450K people and 21K buildings enter baseline flood zones. Coastal villages face first permanent inundation.</p>
+            <p><strong>2040:</strong> Risk triples with 35cm rise. 1.2M people and 56K buildings now vulnerable. Karachi's defenses fail annually.</p>
+            <div class="comparison-caption">Scroll down to see risk escalation →</div>
+        </div>
+        <div class="narrative-section" data-index="1">
+            <h3 class="orange">2040 vs 2050</h3>
+            <p><strong>2040:</strong> 1.2M displaced as risk zones expand dramatically. Infrastructure relocation becomes urgent reality.</p>
+            <p><strong>2050:</strong> 65cm rise submerges 2.5M people and destroys 115K buildings. Entire coastal economy collapses.</p>
+            <div class="comparison-caption">Catastrophic transformation complete</div>
+        </div>
+    </div>
+
+    <!-- COMPARISON CAPTION -->
+    <div id="comparison-caption">2030 Baseline (cyan) vs 2040 Risk Zones (orange)</div>
     
     <!-- HERO: 2023 SINDH FLOODS -->
     <div class="hero" onclick="startStory()">
@@ -106,10 +161,10 @@
             <div class="hero-stat"><div>430K</div><div class="hero-label">Livestock Lost</div></div>
             <div class="hero-stat"><div>3.7M</div><div class="hero-label">Acres Crops</div></div>
         </div>
-        <button class="continue-btn" onclick="startStory(event)">See Future Projections →</button>
+        <button class="continue-btn" onclick="startStory(event)">Scroll to See Future →</button>
     </div>
     
-    <!-- STORY 1: 2030 BASELINE -->
+    <!-- STORY PANELS (unchanged) -->
     <div class="story-panel" id="story1">
         <div class="story-content">
             <h2 class="cyan">🌊 2030: Inundation Baseline</h2>
@@ -122,7 +177,6 @@
         </div>
     </div>
     
-    <!-- STORY 2: 2040 RISK ZONES -->
     <div class="story-panel" id="story2">
         <div class="story-content">
             <h2 class="orange">⚠️ 2040: Risk Zones Expand</h2>
@@ -136,7 +190,6 @@
         </div>
     </div>
     
-    <!-- STORY 3: 2050 HIGH RISK -->
     <div class="story-panel" id="story3">
         <div class="story-content">
             <h2 class="red">🚨 2050: Catastrophic Inundation</h2>
@@ -167,47 +220,69 @@
     </div>
 
     <script>
-        let map, currentLayer, currentStoryIndex = -1;
+        let map, layers = {}, currentLayer, currentStoryIndex = -1;
         const storyPanels = ['story1', 'story2', 'story3'];
         const storyYears = ['2030', '2040', '2050'];
         
         const esriSatellite = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}');
         
+        // Narrative scroll sections
+        const narrativeSections = [
+            { years: ['2030', '2040'], caption: '2030 Baseline (cyan) vs 2040 Risk Zones (orange)' },
+            { years: ['2040', '2050'], caption: '2040 Risk Zones (orange) vs 2050 High Risk (red)' }
+        ];
+        
         function initMap() {
             map = L.map('map').setView([24.86, 67.05], 12);
             esriSatellite.addTo(map);
+            
+            // Preload all layers
+            storyYears.forEach(year => {
+                loadLayerAsync(year);
+            });
         }
         
-        async function loadLayer(year) {
+        async function loadLayerAsync(year) {
             try {
                 const filename = year === '2030' ? 'inundation_baseline.json' : `risk_zone_${year}.json`;
                 const response = await fetch(filename);
                 if (!response.ok) throw new Error();
                 const data = await response.json();
                 
-                if (currentLayer) map.removeLayer(currentLayer);
-                currentLayer = L.geoJSON(data, {
+                layers[year] = L.geoJSON(data, {
                     style: feature => ({
                         fillColor: year === '2030' ? '#4ecdc4' : year === '2040' ? '#ffaa00' : '#ff4444',
                         fillOpacity: 0.6, color: '#ffffff', weight: 2
                     })
-                }).addTo(map);
-                if (currentLayer.getBounds().isValid()) map.fitBounds(currentLayer.getBounds());
+                });
             } catch {
-                showDemoLayer(year);
+                layers[year] = createDemoLayer(year);
             }
         }
         
-        function showDemoLayer(year) {
-            if (currentLayer) map.removeLayer(currentLayer);
+        function createDemoLayer(year) {
             const color = year === '2030' ? '#4ecdc4' : year === '2040' ? '#ffaa00' : '#ff4444';
-            currentLayer = L.geoJSON({
+            return L.geoJSON({
                 type: 'FeatureCollection',
                 features: [{type: 'Feature', geometry: {
                     type: 'Polygon', coordinates: [[[66.95, 24.80], [67.25, 24.80], [67.25, 24.90], [66.95, 24.90]]]
                 }}]
-            }, {style: {fillColor: color, fillOpacity: 0.6, color: '#ffffff', weight: 3}}).addTo(map);
-            map.fitBounds(currentLayer.getBounds());
+            }, {style: {fillColor: color, fillOpacity: 0.6, color: '#ffffff', weight: 3}});
+        }
+        
+        function showLayerComparison(sectionIndex) {
+            // Clear all layers
+            Object.values(layers).forEach(layer => map.removeLayer(layer));
+            
+            const section = narrativeSections[sectionIndex];
+            section.years.forEach(year => {
+                if (layers[year]) layers[year].addTo(map);
+            });
+            
+            document.getElementById('comparison-caption').textContent = section.caption;
+            document.querySelectorAll('.narrative-section').forEach((sec, i) => {
+                sec.classList.toggle('active', i === sectionIndex);
+            });
         }
         
         const metricsData = {2030: {pop: 450000, buildings: 21000}, 2040: {pop: 1200000, buildings: 56000}, 2050: {pop: 2500000, buildings: 115000}};
@@ -222,17 +297,33 @@
             if (e) e.stopPropagation();
             document.querySelector('.hero').style.display = 'none';
             showStory(0);
+            // Start with first comparison
+            setTimeout(() => showLayerComparison(0), 600);
         }
         
         function showStory(index) {
             document.querySelectorAll('.story-panel').forEach(p => p.classList.remove('show'));
             document.getElementById(storyPanels[index]).classList.add('show');
             currentStoryIndex = index;
-            loadLayer(storyYears[index]);
-            updateMetrics(storyYears[index]);
+            
+            const year = storyYears[index];
+            updateMetrics(year);
             document.querySelectorAll('.year-btn').forEach(b => b.classList.remove('active'));
-            document.querySelector(`[data-year="${storyYears[index]}"]`).classList.add('active');
+            document.querySelector(`[data-year="${year}"]`).classList.add('active');
         }
+        
+        // Scroll narrative control
+        document.getElementById('narrative-panel').addEventListener('scroll', (e) => {
+            const scrollTop = e.target.scrollTop;
+            const scrollHeight = e.target.scrollHeight - e.target.clientHeight;
+            const scrollPercent = scrollTop / scrollHeight;
+            
+            if (scrollPercent < 0.5) {
+                showLayerComparison(0); // 2030 vs 2040
+            } else {
+                showLayerComparison(1); // 2040 vs 2050
+            }
+        });
         
         document.addEventListener('DOMContentLoaded', initMap);
         
@@ -240,8 +331,11 @@
             btn.addEventListener('click', () => {
                 document.querySelectorAll('.year-btn').forEach(b => b.classList.remove('active'));
                 btn.classList.add('active');
-                loadLayer(btn.dataset.year);
-                updateMetrics(btn.dataset.year);
+                if (layers[btn.dataset.year]) {
+                    Object.values(layers).forEach(layer => map.removeLayer(layer));
+                    layers[btn.dataset.year].addTo(map);
+                    updateMetrics(btn.dataset.year);
+                }
             });
         });
         
@@ -249,3 +343,4 @@
     </script>
 </body>
 </html>
+
