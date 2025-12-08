@@ -18,7 +18,7 @@
         }
         #map { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; }
         
-        /* MAIN TITLE - Upper Center (Hidden initially) */
+        /* MAIN TITLE */
         .main-title {
             position: absolute; top: 30px; left: 50%; transform: translateX(-50%);
             z-index: 1000; font-size: 36px; font-weight: 700; text-align: center;
@@ -28,7 +28,7 @@
         }
         .main-title.show { opacity: 1; }
         
-        /* Slider - Bottom Center (Hidden initially) */
+        /* Slider Panel */
         .slider-panel {
             position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%);
             z-index: 1000; background: rgba(15,20,40,0.98); backdrop-filter: blur(20px);
@@ -59,28 +59,25 @@
             box-shadow: 0 4px 12px rgba(255,107,107,0.4); 
         }
         
-        /* Risk Zone Toggle - Bottom Right (Hidden initially) */
-        .risk-toggle {
+        /* Inundation Toggle */
+        .inundation-toggle {
             position: absolute; bottom: 30px; right: 30px; z-index: 1000;
             background: rgba(15,20,40,0.98); backdrop-filter: blur(20px);
-            border-radius: 20px; padding: 20px; min-width: 200px;
+            border-radius: 20px; padding: 20px; min-width: 220px;
             border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 25px 50px rgba(0,0,0,0.4);
             opacity: 0; transition: opacity 0.5s;
         }
-        .risk-toggle.show { opacity: 1; }
-        .risk-toggle h4 { margin-bottom: 15px; font-size: 16px; text-align: center; }
-        .risk-btn {
+        .inundation-toggle.show { opacity: 1; }
+        .inundation-toggle h4 { margin-bottom: 15px; font-size: 16px; text-align: center; }
+        .inundation-btn {
             display: block; width: 100%; background: rgba(255,255,255,0.1); 
             color: white; border: none; padding: 12px; margin: 6px 0;
             border-radius: 12px; cursor: pointer; font-size: 14px; transition: all 0.3s;
             font-family: 'Inter', sans-serif;
         }
-        .risk-btn.active, .risk-btn:hover { 
+        .inundation-btn.active, .inundation-btn:hover { 
             background: linear-gradient(135deg,#ff6b6b,#4ecdc4); transform: translateY(-2px);
         }
-        .risk-btn.safe { border: 2px solid #00ff88; }
-        .risk-btn.moderate { border: 2px solid #ffaa00; }
-        .risk-btn.high { border: 2px solid #ff4444; }
         
         /* BEAUTIFUL BEIGE POPUPS */
         .leaflet-popup-content-wrapper {
@@ -93,8 +90,161 @@
             font-size: 14px !important; line-height: 1.5 !important; color: #4a3f2a !important;
             text-align: center !important;
         }
-        .leaflet-popup-tip { background: #d4c7a0 !important; box-shadow: none !important; }
         
         .leaflet-top.leaflet-right { z-index: 1000; margin-top: 80px !important; }
         .leaflet-control-layers { 
-            box
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3) !important; 
+            border-radius: 12px !important; background: rgba(20,25,45,0.98) !important;
+            backdrop-filter: blur(15px) !important;
+        }
+        
+        @media (max-width: 768px) {
+            .main-title { font-size: 24px; top: 20px; }
+            .slider-panel, .inundation-toggle { position: relative !important; margin: 15px; min-width: auto; }
+            .metrics-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div id="map"></div>
+    
+    <!-- MAIN TITLE -->
+    <div class="main-title">Sindh: Coastal Flood Risk Zones</div>
+    
+    <!-- Slider + Metrics -->
+    <div class="slider-panel">
+        <div class="year-display" id="current-year">2030</div>
+        <div class="slider-container">
+            <input type="range" id="year-slider" class="slider" min="2030" max="2050" step="10" value="2030">
+        </div>
+        <div class="metrics-grid">
+            <div class="metric-card">
+                <div class="metric-value" id="pop-affected">0</div>
+                <div class="metric-label">People Affected</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value" id="buildings-affected">0</div>
+                <div class="metric-label">Buildings Affected</div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- YOUR INUNDATION LAYERS -->
+    <div class="inundation-toggle">
+        <h4>Inundation Layers</h4>
+        <button class="inundation-btn active" data-year="2030">🌊 2030 Baseline</button>
+        <button class="inundation-btn" data-year="2040">🌊 2040 Risk</button>
+        <button class="inundation-btn" data-year="2050">🌊 2050 Risk</button>
+    </div>
+
+    <script>
+        // SATELLITE DEFAULT MAP [web:78][web:80]
+        const map = L.map('map', {
+            zoomControl: true,
+            zoomControlPosition: 'topright'
+        }).setView([24.86, 67.05], 13);
+        
+        // Base layers
+        const satelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+            attribution: '© Esri & sources'
+        });
+        const streetLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png');
+        const terrainLayer = L.tileLayer('https://{s}.terrain.cartocdn.com/rastertiles/voyager_nolabels/{z}/{x}/{y}{r}.png');
+        
+        // SATELLITE DEFAULT [web:78]
+        L.control.layers({
+            "🛰️ Satellite": satelliteLayer,
+            "🌆 Street": streetLayer,
+            "🏔️ Terrain": terrainLayer
+        }).addTo(map);
+        satelliteLayer.addTo(map);
+        
+        // YOUR CUSTOM INUNDATION LAYERS
+        let currentInundationLayer = null;
+        const inundationLayers = {};
+        
+        // Load YOUR JSON files
+        async function loadInundationLayer(year) {
+            try {
+                const response = await fetch(`${year === '2030' ? 'inundation_baseline.json' : `risk_zone_${year}.json`}`);
+                const data = await response.json();
+                
+                // Clear previous layer
+                if (currentInundationLayer) {
+                    map.removeLayer(currentInundationLayer);
+                }
+                
+                // Add new layer
+                currentInundationLayer = L.geoJSON(data, {
+                    style: feature => {
+                        // Customize styling based on your data properties
+                        const risk = feature.properties?.risk_level || feature.properties?.risk || 'low';
+                        const colors = { low: '#00ff88', moderate: '#ffaa00', high: '#ff4444' };
+                        return {
+                            fillColor: colors[risk] || '#ff4444',
+                            fillOpacity: 0.5,
+                            color: '#ffffff',
+                            weight: 2
+                        };
+                    },
+                    onEachFeature: (feature, layer) => {
+                        const props = feature.properties || {};
+                        layer.bindPopup(`
+                            <b>${props.name || 'Flood Zone'}</b><br>
+                            Year: ${year}<br>
+                            Risk: ${props.risk_level || props.risk || 'Unknown'}<br>
+                            Area: ${props.area || 'N/A'}
+                        `);
+                    }
+                }).addTo(map);
+                
+                // Auto-zoom to layer bounds
+                map.fitBounds(currentInundationLayer.getBounds());
+                
+            } catch (error) {
+                console.error(`Error loading ${year} layer:`, error);
+                alert(`Could not load ${year} layer. Please ensure ${year === '2030' ? 'inundation_baseline.json' : `risk_zone_${year}.json`} is in your repo.`);
+            }
+        }
+        
+        // Inundation toggle
+        document.querySelectorAll('.inundation-btn').forEach(btn => {
+            btn.addEventListener('click', async () => {
+                // Show UI
+                document.querySelector('.main-title').classList.add('show');
+                document.querySelector('.slider-panel').classList.add('show');
+                document.querySelector('.inundation-toggle').classList.add('show');
+                
+                // Update active button
+                document.querySelectorAll('.inundation-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                
+                const year = btn.dataset.year;
+                await loadInundationLayer(year);
+                updateMetrics(year);
+            });
+        });
+        
+        // LIVE METRICS (based on slider + layer)
+        const baseMetrics = { 2030: { pop: 450000, buildings: 21000 }, 2040: { pop: 1200000, buildings: 56000 }, 2050: { pop: 2500000, buildings: 115000 } };
+        
+        function updateMetrics(year) {
+            const sliderYear = document.getElementById('year-slider').value;
+            const metrics = baseMetrics[sliderYear] || baseMetrics['2030'];
+            
+            document.getElementById('pop-affected').textContent = metrics.pop.toLocaleString();
+            document.getElementById('buildings-affected').textContent = metrics.buildings.toLocaleString();
+            document.getElementById('current-year').textContent = sliderYear;
+        }
+        
+        // Slider updates metrics
+        document.getElementById('year-slider').addEventListener('input', (e) => {
+            const year = e.target.value;
+            updateMetrics(year);
+        });
+        
+        // Initialize - SATELLITE ONLY
+        map.flyTo([24.86, 67.05], 13, { duration: 1 });
+    </script>
+</body>
+</html>
