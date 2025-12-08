@@ -1,400 +1,259 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Sindh Flood Risk StoryMap (2030-2050)</title>
-
-  <link
-    rel="stylesheet"
-    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-  />
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <link
-    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap"
-    rel="stylesheet"
-  />
-
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-    html,
-    body {
-      height: 100%;
-      overflow: hidden;
-      font-family: "Inter", sans-serif;
-      background: #0a0e2a;
-      display: flex;
-      flex-direction: column;
-    }
-    #map {
-      flex: 1;
-      width: 100%;
-      position: relative;
-    }
-
-    .main-title {
-      text-align: center;
-      margin: 15px 0;
-      font-size: 2rem;
-      font-weight: 700;
-      background: linear-gradient(135deg, #ff6b6b, #4ecdc4);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
-    }
-
-    .container {
-      display: flex;
-      height: 500px;
-      width: 100%;
-      max-width: 1400px;
-      margin: 0 auto 30px;
-    }
-
-    .story-section {
-      flex: 1;
-      padding: 25px;
-      background: rgba(15, 20, 40, 0.98);
-      border-radius: 20px;
-      color: white;
-      overflow-y: auto;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-    }
-
-    .story-section > h2 {
-      font-size: 2rem;
-      margin-bottom: 15px;
-    }
-
-    .story-section > p {
-      font-size: 1.15rem;
-      line-height: 1.6;
-      margin-bottom: 20px;
-    }
-
-    .story-image {
-      max-width: 320px;
-      margin-bottom: 20px;
-      border-radius: 16px;
-      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.6);
-      object-fit: cover;
-      align-self: center;
-    }
-
-    .nav-buttons {
-      margin-top: auto;
-      display: flex;
-      justify-content: space-between;
-    }
-
-    .nav-btn {
-      background: rgba(255, 255, 255, 0.15);
-      border: none;
-      padding: 14px 30px;
-      border-radius: 30px;
-      color: white;
-      cursor: pointer;
-      font-size: 1rem;
-      font-weight: 600;
-      transition: all 0.3s ease;
-    }
-
-    .nav-btn:hover:not(:disabled) {
-      background: linear-gradient(135deg, #ff6b6b, #4ecdc4);
-      transform: translateY(-2px);
-    }
-
-    .nav-btn:disabled {
-      cursor: default;
-      opacity: 0.4;
-      transform: none;
-    }
-
-    /* Legend fixed top right */
-    .legend {
-      position: fixed;
-      top: 75px;
-      right: 30px;
-      background: rgba(15, 20, 40, 0.95);
-      backdrop-filter: blur(20px);
-      border-radius: 16px;
-      padding: 20px;
-      min-width: 180px;
-      border: 1px solid rgba(255, 255, 255, 0.15);
-      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
-      color: white;
-      font-size: 0.9rem;
-      font-weight: 600;
-    }
-
-    .legend-row {
-      display: flex;
-      align-items: center;
-      margin: 10px 0;
-    }
-
-    .legend-color {
-      width: 24px;
-      height: 24px;
-      border-radius: 4px;
-      margin-right: 12px;
-      border: 2px solid rgba(255, 255, 255, 0.3);
-    }
-
-    /* Slider panel fixed bottom center */
-    .slider-panel {
-      position: fixed;
-      bottom: 30px;
-      left: 50%;
-      transform: translateX(-50%);
-      z-index: 1100;
-      background: rgba(15, 20, 40, 0.98);
-      backdrop-filter: blur(20px);
-      border-radius: 20px;
-      padding: 18px 25px;
-      min-width: 360px;
-      display: flex;
-      justify-content: space-around;
-      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
-      color: #4ecdc4;
-      font-weight: 700;
-      font-size: 1.1rem;
-      user-select: none;
-    }
-
-    .slider-fact {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 4px;
-      min-width: 90px;
-    }
-
-    .slider-fact .value {
-      font-size: 1.6rem;
-      font-weight: 900;
-    }
-
-    .slider-fact .label {
-      font-size: 0.85rem;
-      font-weight: 400;
-      opacity: 0.8;
-    }
-
-    @media screen and (max-width: 768px) {
-      .container {
-        flex-direction: column;
-        height: auto;
-        padding: 0 15px;
-      }
-
-      #map {
-        height: 400px;
-      }
-
-      .story-section {
-        width: 100%;
-        margin-top: 15px;
-      }
-
-      .legend {
-        position: relative;
-        top: auto;
-        right: auto;
-        margin: 10px auto;
-        width: 90vw;
-      }
-
-      .slider-panel {
-        position: relative;
-        bottom: auto;
-        left: auto;
-        transform: none;
-        margin: 10px auto 20px;
-        width: 90vw;
-        justify-content: space-between;
-      }
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sindh Flood Risk Zones (2030-2050)</title>
+    
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    
+    <style>
+        html, body {
+            margin: 0; padding: 0; height: 100%; overflow: hidden;
+            font-family: 'Inter', sans-serif; background: #0a0e2a;
+        }
+        #map { height: 100vh; width: 100%; }
+        
+        /* ORIGINAL CONTROLS - UNCHANGED */
+        .main-title {
+            position: absolute; top: 25px; left: 50%; transform: translateX(-50%);
+            z-index: 1000; font-size: 32px; font-weight: 700; color: white;
+            text-align: center; text-shadow: 0 2px 10px rgba(0,0,0,0.5);
+            background: linear-gradient(135deg, #ff6b6b, #4ecdc4);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+        
+        .slider-panel {
+            position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%);
+            z-index: 1100; background: rgba(15,20,40,0.98); backdrop-filter: blur(20px);
+            border-radius: 20px; padding: 25px; min-width: 380px; max-width: 90vw;
+            border: 1px solid rgba(255,255,255,0.15); box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+        }
+        .year-display { 
+            font-size: 28px; font-weight: 700; text-align: center; margin-bottom: 15px;
+            background: linear-gradient(135deg,#ff6b6b,#4ecdc4); 
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent; 
+        }
+        .metrics-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 15px; }
+        .metric-card { 
+            background: rgba(255,255,255,0.1); padding: 15px; border-radius: 12px; 
+            text-align: center; backdrop-filter: blur(10px); 
+        }
+        .metric-value { font-size: 22px; font-weight: 700; margin-bottom: 5px; color: #4ecdc4; }
+        .metric-label { font-size: 12px; opacity: 0.9; }
+        .slider { 
+            width: 100%; height: 8px; border-radius: 4px; background: rgba(255,255,255,0.2); 
+            outline: none; appearance: none; margin: 20px 0; cursor: pointer;
+        }
+        .slider::-webkit-slider-thumb { 
+            appearance: none; width: 26px; height: 26px; border-radius: 50%; 
+            background: linear-gradient(135deg,#ff6b6b,#4ecdc4); cursor: pointer; 
+            box-shadow: 0 4px 12px rgba(255,107,107,0.4); 
+        }
+        
+        .legend {
+            position: fixed; top: 30px; right: 30px; z-index: 1100;
+            background: rgba(15,20,40,0.98); backdrop-filter: blur(20px);
+            border-radius: 16px; padding: 20px; min-width: 180px;
+            border: 1px solid rgba(255,255,255,0.15); box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+        }
+        .legend-row { display: flex; align-items: center; margin: 10px 0; font-size: 13px; }
+        .legend-color { width: 24px; height: 24px; border-radius: 4px; margin-right: 12px; border: 2px solid rgba(255,255,255,0.3); }
+        
+        /* NEW SLIDING STORY OVERLAY */
+        .story-overlay {
+            position: fixed; top: 0; right: -500px; width: 500px; height: 100vh; 
+            z-index: 1200; background: rgba(15,20,40,0.98); backdrop-filter: blur(30px);
+            padding: 60px 40px; overflow-y: auto; transition: right 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            border-left: 1px solid rgba(255,255,255,0.1); box-shadow: -20px 0 60px rgba(0,0,0,0.6);
+        }
+        .story-overlay.active { right: 0; }
+        .story-close {
+            position: absolute; top: 30px; right: 30px; background: none; border: none;
+            color: white; font-size: 24px; cursor: pointer; opacity: 0.7; z-index: 1300;
+        }
+        .story-close:hover { opacity: 1; transform: rotate(90deg); transition: 0.3s; }
+        .story-content h2 {
+            font-size: 42px; font-weight: 800; margin-bottom: 25px; line-height: 1.1;
+        }
+        .story-content .cyan { color: #4ecdc4; }
+        .story-content .orange { color: #ffaa00; }
+        .story-content .red { color: #ff4444; }
+        .story-content p { font-size: 20px; line-height: 1.7; margin-bottom: 20px; opacity: 0.95; }
+        .story-image { 
+            width: 100%; height: 250px; object-fit: cover; border-radius: 20px; 
+            margin: 25px 0; box-shadow: 0 15px 40px rgba(0,0,0,0.4);
+        }
+        .story-nav { 
+            display: flex; gap: 15px; margin-top: 30px; opacity: 0.8; 
+            font-size: 16px; font-weight: 500;
+        }
+        .story-nav button { 
+            flex: 1; padding: 12px; border: 2px solid rgba(255,255,255,0.2); 
+            background: rgba(255,255,255,0.05); color: white; border-radius: 12px; 
+            cursor: pointer; transition: all 0.3s;
+        }
+        .story-nav button:hover { background: rgba(255,255,255,0.15); border-color: rgba(255,255,255,0.4); }
+        .story-nav button:disabled { opacity: 0.3; cursor: not-allowed; }
+        
+        @media (max-width: 768px) {
+            .story-overlay { width: 100%; right: -100%; }
+            .main-title { font-size: 24px; top: 15px; }
+            .slider-panel { position: relative; bottom: auto; left: auto; transform: none; margin: 15px; min-width: auto; }
+            .legend { position: relative; top: auto; right: auto; margin: 15px; }
+        }
+    </style>
 </head>
 <body>
-  <div class="main-title">Sindh Flood Risk StoryMap (2030-2050)</div>
-  <div id="map"></div>
-
-  <div class="container">
-    <div class="story-section" id="story-section">
-      <!-- Story content injected dynamically -->
+    <div id="map"></div>
+    
+    <!-- ORIGINAL CONTROLS -->
+    <div class="main-title">Sindh Flood Risk Zones (2030-2050)</div>
+    
+    <div class="legend">
+        <strong>Layer Legend</strong>
+        <div class="legend-row"><div class="legend-color" style="background: #4ecdc4;"></div>2030 Baseline</div>
+        <div class="legend-row"><div class="legend-color" style="background: #ffaa00;"></div>2040 Risk</div>
+        <div class="legend-row"><div class="legend-color" style="background: #ff4444;"></div>2050 High Risk</div>
     </div>
-  </div>
-
-  <div class="legend">
-    <div class="legend-row">
-      <div class="legend-color" style="background:#4ecdc4"></div>2030 Baseline
-    </div>
-    <div class="legend-row">
-      <div class="legend-color" style="background:#ffaa00"></div>2040 Risk Zones
-    </div>
-    <div class="legend-row">
-      <div class="legend-color" style="background:#ff4444"></div>2050 High Risk
-    </div>
-  </div>
-
-  <div class="slider-panel" aria-label="Key statistics for selected year floods">
-    <div class="slider-fact">
-      <div class="value" id="pop-affected">450K</div>
-      <div class="label">People Affected</div>
-    </div>
-    <div class="slider-fact">
-      <div class="value" id="buildings-affected">21K</div>
-      <div class="label">Buildings Affected</div>
-    </div>
-  </div>
-
-  <script>
-    const storyData = [
-      {
-        year: "2030",
-        title: "🌊 2030: Inundation Baseline",
-        narrative:
-          "Sea levels rise 15cm. 450K people and 21K buildings now in baseline flood zones. Villages face semi-permanent flooding with little adaptation.",
-        img:
-          "https://images.unsplash.com/photo-1580130684518-6f4d5514de2d?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80",
-        color: "#4ecdc4",
-        pop: 450000,
-        buildings: 21000,
-      },
-      {
-        year: "2040",
-        title: "⚠️ 2040: Expanding Risk Zones",
-        narrative:
-          "35cm sea level rise. 1.2M people and 56K buildings displaced. Karachi's defenses overwhelmed. Infrastructure needs urgent relocation.",
-        img:
-          "https://images.unsplash.com/photo-1661473816817-eb987a5d7337?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80",
-        color: "#ffaa00",
-        pop: 1200000,
-        buildings: 56000,
-      },
-      {
-        year: "2050",
-        title: "🚨 2050: Catastrophic Floods",
-        narrative:
-          "65cm sea level rise. 2.5M people homeless and 115K buildings destroyed. Entire coastal communities permanently submerged. Urgent resilience required.",
-        img:
-          "https://images.unsplash.com/photo-1614800081266-3892778d7591?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80",
-        color: "#ff4444",
-        pop: 2500000,
-        buildings: 115000,
-      },
-    ];
-
-    let map, currentLayer;
-
-    function initMap() {
-      map = L.map("map").setView([24.86, 67.05], 12);
-      L.tileLayer(
-        "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
-      ).addTo(map);
-    }
-
-    function loadLayer(year) {
-      const dataFile =
-        year === "2030"
-          ? "inundation_baseline.json"
-          : `risk_zone_${year}.json`;
-
-      fetch(dataFile)
-        .then((res) => {
-          if (!res.ok) throw new Error("Fetch error");
-          return res.json();
-        })
-        .then((data) => {
-          if (currentLayer) map.removeLayer(currentLayer);
-          const fillColor =
-            year === "2030"
-              ? "#4ecdc4"
-              : year === "2040"
-              ? "#ffaa00"
-              : "#ff4444";
-          currentLayer = L.geoJSON(data, {
-            style: { fillColor, fillOpacity: 0.6, color: "#fff", weight: 2 },
-          }).addTo(map);
-          map.fitBounds(currentLayer.getBounds());
-        })
-        .catch(() => {
-          if (currentLayer) map.removeLayer(currentLayer);
-          currentLayer = L.geoJSON({
-            type: "FeatureCollection",
-            features: [
-              {
-                type: "Feature",
-                geometry: {
-                  type: "Polygon",
-                  coordinates: [
-                    [
-                      [66.95, 24.8],
-                      [67.25, 24.8],
-                      [67.25, 24.9],
-                      [66.95, 24.9],
-                    ],
-                  ],
-                },
-              },
-            ],
-          }, {
-            style: {
-              fillColor:
-                year === "2030"
-                  ? "#4ecdc4"
-                  : year === "2040"
-                  ? "#ffaa00"
-                  : "#ff4444",
-              fillOpacity: 0.6,
-              color: "#fff",
-              weight: 2,
-            },
-          }).addTo(map);
-          map.fitBounds(currentLayer.getBounds());
-        });
-    }
-
-    function updateStory(index) {
-      const story = storyData[index];
-      const container = document.getElementById("story-section");
-      container.innerHTML = `
-        <h2 style="color:${story.color}">${story.title}</h2>
-        <img class="story-image" src="${story.img}" alt="Story image" />
-        <p>${story.narrative}</p>
-        <div class="nav-buttons">
-          <button class="nav-btn" ${
-            index === 0 ? "disabled" : ""
-          } onclick="updateStory(${index - 1})">← Previous</button>
-          <button class="nav-btn" ${
-            index === storyData.length - 1 ? "disabled" : ""
-          } onclick="updateStory(${index + 1})">Next →</button>
+    
+    <div class="slider-panel">
+        <div class="year-display" id="current-year">2030</div>
+        <input type="range" id="year-slider" class="slider" min="2030" max="2050" step="10" value="2030">
+        <div class="metrics-grid">
+            <div class="metric-card">
+                <div class="metric-value" id="pop-affected">450K</div>
+                <div class="metric-label">People Affected</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value" id="buildings-affected">21K</div>
+                <div class="metric-label">Buildings Affected</div>
+            </div>
         </div>
-      `;
+    </div>
+    
+    <!-- SLIDING STORY OVERLAY -->
+    <div class="story-overlay" id="storyOverlay">
+        <button class="story-close" onclick="closeStory()">×</button>
+        <div class="story-content" id="storyContent">
+            <!-- Dynamic story content -->
+        </div>
+    </div>
 
-      document.getElementById("pop-affected").textContent = `${(
-        story.pop / 1000
-      ).toLocaleString()}K`;
-      document.getElementById("buildings-affected").textContent = `${(
-        story.buildings / 1000
-      ).toLocaleString()}K`;
-
-      loadLayer(story.year);
-    }
-
-    // Initialize everything on dom load
-    document.addEventListener("DOMContentLoaded", () => {
-      initMap();
-      updateStory(0);
-    });
-  </script>
+    <script>
+        let map = null, currentLayer = null;
+        const storyData = [
+            {
+                year: '2030', color: '#4ecdc4', title: '🌊 2030: Inundation Baseline',
+                image: 'https://images.unsplash.com/photo-1580130684518-6f4d5514de2d?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+                narrative: 'Sea levels rise <strong>15cm</strong>. First permanent inundation begins. <strong>450K people</strong> and <strong>21K buildings</strong> now live in baseline flood zones. Coastal villages become semi-permanent wetlands.',
+                prev: false, next: true
+            },
+            {
+                year: '2040', color: '#ffaa00', title: '⚠️ 2040: Risk Zones Expand',
+                image: 'https://images.unsplash.com/photo-1661473816817-eb987a5d7337?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+                narrative: '<strong>35cm sea level rise</strong>. Risk zones triple in size. <strong>1.2M people</strong> and <strong>56K buildings</strong> now in high-risk areas. Karachi\'s coastal defenses overwhelmed. Major infrastructure relocation required.',
+                prev: true, next: true
+            },
+            {
+                year: '2050', color: '#ff4444', title: '🚨 2050: Catastrophic Floods',
+                image: 'https://images.unsplash.com/photo-1614800081266-3892778d7591?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+                narrative: '<strong>65cm sea level rise</strong>. <strong>2.5M people homeless</strong>. <strong>115K buildings destroyed</strong>. Entire coastal communities permanently submerged. Sindh\'s coastal economy collapses.',
+                prev: true, next: false
+            }
+        ];
+        
+        // ESRI Satellite
+        const esriSatellite = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}');
+        
+        function initMap() {
+            map = L.map('map').setView([24.86, 67.05], 12);
+            esriSatellite.addTo(map);
+        }
+        
+        async function loadLayer(year) {
+            try {
+                const filename = year === '2030' ? 'inundation_baseline.json' : `risk_zone_${year}.json`;
+                const response = await fetch(filename);
+                if (!response.ok) throw new Error();
+                const data = await response.json();
+                
+                if (currentLayer) map.removeLayer(currentLayer);
+                currentLayer = L.geoJSON(data, {
+                    style: { fillColor: year === '2030' ? '#4ecdc4' : year === '2040' ? '#ffaa00' : '#ff4444',
+                            fillOpacity: 0.6, color: '#ffffff', weight: 2 }
+                }).addTo(map);
+                map.fitBounds(currentLayer.getBounds());
+            } catch {
+                showDemoLayer(year);
+            }
+        }
+        
+        function showDemoLayer(year) {
+            if (currentLayer) map.removeLayer(currentLayer);
+            const color = year === '2030' ? '#4ecdc4' : year === '2040' ? '#ffaa00' : '#ff4444';
+            currentLayer = L.geoJSON({
+                type: 'FeatureCollection', features: [{
+                    type: 'Feature', geometry: {
+                        type: 'Polygon', coordinates: [[[66.95, 24.80], [67.25, 24.80], [67.25, 24.90], [66.95, 24.90]]]
+                    }
+                }]
+            }, {style: {fillColor: color, fillOpacity: 0.6, color: '#ffffff', weight: 3}}).addTo(map);
+            map.fitBounds(currentLayer.getBounds());
+        }
+        
+        const metricsData = {2030: {pop: 450000, buildings: 21000}, 2040: {pop: 1200000, buildings: 56000}, 2050: {pop: 2500000, buildings: 115000}};
+        function updateMetrics(year) {
+            const data = metricsData[year];
+            document.getElementById('pop-affected').textContent = (data.pop/1000).toLocaleString() + 'K';
+            document.getElementById('buildings-affected').textContent = (data.buildings/1000).toLocaleString() + 'K';
+            document.getElementById('current-year').textContent = year;
+        }
+        
+        function showStory(index) {
+            const story = storyData[index];
+            document.getElementById('storyContent').innerHTML = `
+                <h2 class="${story.color === '#4ecdc4' ? 'cyan' : story.color === '#ffaa00' ? 'orange' : 'red'}">${story.title}</h2>
+                <img class="story-image" src="${story.image}" alt="${story.year} projection">
+                <p>${story.narrative}</p>
+                <div class="story-nav">
+                    <button ${!story.prev ? 'disabled' : ''} onclick="changeStory(${index-1})">← Previous</button>
+                    <button ${!story.next ? 'disabled' : ''} onclick="changeStory(${index+1})">Next →</button>
+                </div>
+            `;
+            document.getElementById('storyOverlay').classList.add('active');
+            loadLayer(story.year);
+            updateMetrics(story.year);
+        }
+        
+        function changeStory(newIndex) {
+            showStory(newIndex);
+        }
+        
+        function closeStory() {
+            document.getElementById('storyOverlay').classList.remove('active');
+        }
+        
+        // ORIGINAL SLIDER (just updates metrics)
+        document.getElementById('year-slider').addEventListener('input', e => {
+            updateMetrics(e.target.value);
+        });
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            initMap();
+            loadLayer('2030');
+            updateMetrics('2030');
+        });
+        
+        // STORY TRIGGER - Click map to open first story
+        map?.on('click', () => {
+            if (!document.getElementById('storyOverlay').classList.contains('active')) {
+                showStory(0);
+            }
+        });
+    </script>
 </body>
 </html>
