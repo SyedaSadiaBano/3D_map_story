@@ -4,11 +4,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sindh Coastal Flood Risk | 2030-2050 Storymap</title>
-    <script src='https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js'></script>
-    <link href='https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css' rel='stylesheet' />
-    <script src="https://unpkg.com/@deck.gl/core@8.9.9/dist.min.js"></script>
-    <script src="https://unpkg.com/@deck.gl/layers@8.9.9/dist.min.js"></script>
-    <script src="https://unpkg.com/@deck.gl/aggregation-layers@8.9.9/dist.min.js"></script>
+    
+    <!-- Leaflet CSS + JS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    
+    <!-- Leaflet Canvas Layer for Deck.gl 3D -->
+    <script src="https://unpkg.com/leaflet.canvaslayer@0.1.4/leaflet.canvaslayer.js"></script>
+    
+    <!-- Turf.js for spatial ops -->
+    <script src="https://unpkg.com/@turf/turf@6.5.0/turf.min.js"></script>
+    
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -20,22 +26,36 @@
         
         /* Story Panel */
         .story-panel {
-            position: absolute; top: 30px; left: 30px; z-index: 1000; background: rgba(15,20,40,0.95);
+            position: absolute; top: 30px; left: 30px; z-index: 1000; background: rgba(15,20,40,0.98);
             backdrop-filter: blur(20px); border-radius: 24px; padding: 30px; max-width: 420px;
             border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 32px 64px rgba(0,0,0,0.4);
         }
-        .year-display { font-size: 36px; font-weight: 700; text-align: center; margin: 20px 0; background: linear-gradient(135deg,#ff6b6b,#4ecdc4); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .year-display { 
+            font-size: 36px; font-weight: 700; text-align: center; margin: 20px 0; 
+            background: linear-gradient(135deg,#ff6b6b,#4ecdc4); 
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent; 
+        }
         .slider-container { margin: 30px 0; }
-        .slider { width: 100%; height: 8px; border-radius: 4px; background: rgba(255,255,255,0.2); outline: none; appearance: none; }
-        .slider::-webkit-slider-thumb { appearance: none; width: 28px; height: 28px; border-radius: 50%; background: linear-gradient(135deg,#ff6b6b,#4ecdc4); cursor: pointer; box-shadow: 0 4px 12px rgba(255,107,107,0.4); }
+        .slider { 
+            width: 100%; height: 8px; border-radius: 4px; background: rgba(255,255,255,0.2); 
+            outline: none; appearance: none; 
+        }
+        .slider::-webkit-slider-thumb { 
+            appearance: none; width: 28px; height: 28px; border-radius: 50%; 
+            background: linear-gradient(135deg,#ff6b6b,#4ecdc4); cursor: pointer; 
+            box-shadow: 0 4px 12px rgba(255,107,107,0.4); 
+        }
         .metrics-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 25px; }
-        .metric-card { background: rgba(255,255,255,0.1); padding: 20px; border-radius: 16px; text-align: center; backdrop-filter: blur(10px); }
+        .metric-card { 
+            background: rgba(255,255,255,0.1); padding: 20px; border-radius: 16px; 
+            text-align: center; backdrop-filter: blur(10px); 
+        }
         .metric-value { font-size: 28px; font-weight: 700; margin-bottom: 8px; }
         .metric-label { font-size: 13px; opacity: 0.8; }
         
         /* Narrative Panel */
         .narrative-panel {
-            position: absolute; bottom: 30px; right: 30px; z-index: 1000; background: rgba(15,20,40,0.95);
+            position: absolute; bottom: 30px; right: 30px; z-index: 1000; background: rgba(15,20,40,0.98);
             backdrop-filter: blur(20px); border-radius: 24px; padding: 30px; max-width: 450px; max-height: 350px;
             border: 1px solid rgba(255,255,255,0.1); overflow-y: auto; box-shadow: 0 32px 64px rgba(0,0,0,0.4);
         }
@@ -43,7 +63,7 @@
         .story-text { line-height: 1.7; font-size: 16px; opacity: 0.95; }
         
         /* Legend */
-        .legend { position: absolute; top: 30px; right: 30px; z-index: 1000; background: rgba(15,20,40,0.95); padding: 25px; border-radius: 20px; }
+        .legend { position: absolute; top: 30px; right: 30px; z-index: 1000; background: rgba(15,20,40,0.98); padding: 25px; border-radius: 20px; }
         .legend h4 { margin-bottom: 15px; font-size: 16px; }
         .legend-row { display: flex; align-items: center; margin: 10px 0; }
         .legend-color { width: 24px; height: 24px; border-radius: 6px; margin-right: 12px; }
@@ -92,42 +112,110 @@
     </div>
 
     <script>
-        mapboxgl.accessToken = 'pk.eyJ1Ijoic3llZGFzYWRpYWJhbm8iLCJhIjoiY2trd3Z3d2s0MDJ4YzJvcW5tZ3Z3dW92YSJ9.ZmWvW1oq0b6zK8f8h1qK8A'; // Your token from repo
+        // Initialize Leaflet Map
+        const map = L.map('map').setView([24.9, 67.8], 11);
         
-        const map = new mapboxgl.Map({
-            container: 'map',
-            style: 'mapbox://styles/mapbox/satellite-streets-v12',
-            center: [67.8, 24.9], // Sindh coast (Karachi focus)
-            zoom: 10.5,
-            pitch: 65,
-            bearing: -25
-        });
-
-        let deckInstance = null;
+        // OpenStreetMap tiles (FREE)
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(map);
+        
         let currentYear = 2030;
-        
-        // Generate realistic Sindh coastal buildings (Microsoft GlobalML proxy)
-        const sindhBuildings = [];
-        for(let i = 0; i < 25000; i++) {
-            const lat = 24.7 + Math.random() * 0.6; // Karachi-Thatta coastal strip
-            const lon = 66.7 + Math.random() * 1.5;
-            const height = Math.random() * 6 + 1.5; // 1.5-7.5m (informal housing)
-            const pop = Math.random() * 12 + 1; // 1-13 people/building
-            sindhBuildings.push({ position: [lon, lat, height], pop, risk: Math.random() });
-        }
-
-        // SLR projections (IPCC AR6 SSP5-8.5)
         const slrLevels = { 2030: 0.15, 2040: 0.35, 2050: 0.65 };
-
-        // Update metrics & narrative
+        
+        // Generate Sindh coastal buildings
+        const sindhBuildings = [];
+        for(let i = 0; i < 15000; i++) {
+            const lat = 24.7 + Math.random() * 0.6;
+            const lon = 66.7 + Math.random() * 1.5;
+            const height = Math.random() * 6 + 1.5;
+            const pop = Math.random() * 12 + 1;
+            sindhBuildings.push({ lat, lon, height, pop });
+        }
+        
+        // Custom Canvas Layer for 3D buildings
+        const buildingLayer = L.canvasLayer().delegate({
+            buildings: sindhBuildings,
+            currentSlr: slrLevels[2030],
+            onDrawLayer: function(info) {
+                const ctx = info.canvas.getContext('2d');
+                const bounds = info.layer.getBounds();
+                const zoom = map.getZoom();
+                
+                ctx.clearRect(0, 0, info.canvas.width, info.canvas.height);
+                
+                // 3D Building rendering
+                this.buildings.forEach(building => {
+                    const point = map.latLngToContainerPoint([building.lat, building.lon]);
+                    
+                    if(point.x > 0 && point.y > 0 && point.x < info.canvas.width && point.y < info.canvas.height) {
+                        const submergence = Math.max(0, (this.currentSlr * 2 - building.height) / 3);
+                        
+                        // Building base
+                        ctx.save();
+                        ctx.translate(point.x, point.y);
+                        ctx.rotate(-map.getBearing() * Math.PI / 180);
+                        
+                        const size = Math.max(8, 25 - zoom);
+                        const height3d = Math.max(0, building.height * 3 - this.currentSlr * 20);
+                        
+                        // Shadow
+                        ctx.fillStyle = `rgba(0,0,0,${submergence * 0.4})`;
+                        ctx.fillRect(-size/2, size/2 + 2, size, 8);
+                        
+                        // Building body (3D extrusion)
+                        const color = submergence > 0.7 ? [255, 60, 60] :
+                                    submergence > 0.3 ? [255, 160, 0] : [0, 255, 120];
+                        const alpha = submergence > 0.7 ? 0.6 : 0.9;
+                        
+                        const gradient = ctx.createLinearGradient(0, -height3d, 0, 0);
+                        gradient.addColorStop(0, `rgba(${color[0]},${color[1]},${color[2]},${alpha})`);
+                        gradient.addColorStop(1, `rgba(${color[0]},${color[1]},${color[2]},${alpha * 0.3})`);
+                        
+                        ctx.fillStyle = gradient;
+                        ctx.fillRect(-size/2, -height3d, size, height3d);
+                        
+                        // Roof highlight
+                        ctx.fillStyle = `rgba(255,255,255,0.3)`;
+                        ctx.fillRect(-size/2 + 1, -height3d + 1, size - 2, 3);
+                        
+                        ctx.restore();
+                    }
+                });
+            }
+        }).addTo(map);
+        
+        // Risk zone polygons
+        const riskZones = L.geoJSON({
+            type: 'FeatureCollection',
+            features: [{
+                type: 'Feature',
+                geometry: {
+                    type: 'Polygon',
+                    coordinates: [[[67.0, 24.5], [68.2, 24.5], [68.2, 25.1], [67.0, 25.1]]]
+                },
+                properties: { risk: 'high', name: 'Karachi Coast' }
+            }]
+        }, {
+            style: feature => ({
+                fillColor: feature.properties.risk === 'high' ? '#ff4444' : '#ffaa00',
+                fillOpacity: 0.4,
+                color: 'white',
+                weight: 2
+            })
+        }).addTo(map);
+        
+        // Update story metrics
         function updateStory(year) {
             const slr = slrLevels[year];
-            const exposedPop = Math.round(sindhBuildings.reduce((sum, b) => {
-                return sum + (b.position[2] < slr * 2 ? b.pop : 0);
-            }, 0) / 1000000 * 10); // Scale to 16M total
+            buildingLayer.currentSlr = slr;
+            buildingLayer.needRedraw();
+            
+            const exposedPop = Math.round(sindhBuildings.filter(b => b.height < slr * 2).reduce((sum, b) => sum + b.pop, 0) / 1000000 * 10);
+            const exposedBuildings = Math.round(sindhBuildings.length * (slr * 2));
             
             document.getElementById('pop-exposed').textContent = exposedPop + 'M';
-            document.getElementById('buildings-risk').textContent = Math.round(sindhBuildings.length * (slr * 2)).toLocaleString();
+            document.getElementById('buildings-risk').textContent = exposedBuildings.toLocaleString();
             document.getElementById('current-year').textContent = year;
             
             const stories = {
@@ -138,64 +226,18 @@
             document.getElementById('story-title').textContent = `Sindh ${year} Crisis`;
             document.getElementById('story-text').innerHTML = stories[year];
         }
-
-        // Deck.gl 3D visualization
-        function initDeck() {
-            deckInstance = new deck.Deck({
-                canvas: 'map-deck',
-                initialViewState: { longitude: 67.8, latitude: 24.9, zoom: 11.5, pitch: 65, bearing: -25 },
-                controller: true,
-                layers: [
-                    new deck.HexagonLayer({
-                        id: 'buildings-risk',
-                        data: sindhBuildings,
-                        getPosition: d => d.position,
-                        radius: 60,
-                        elevationRange: [0, 250],
-                        elevationScale: 3,
-                        extruded: true,
-                        getFillColor: d => {
-                            const submergence = Math.max(0, (slrLevels[currentYear] * 2 - d.position[2]) / 3);
-                            return submergence > 0.7 ? [255, 60, 60, 200] :
-                                   submergence > 0.3 ? [255, 160, 0, 200] : [0, 255, 120, 200];
-                        },
-                        pickable: true
-                    })
-                ]
-            });
-        }
-
+        
         // Events
         document.getElementById('year-slider').addEventListener('input', (e) => {
             currentYear = parseInt(e.target.value);
             updateStory(currentYear);
-            if(deckInstance) deckInstance.setProps({ layers: initDeck().props.layers });
         });
-
-        map.on('load', () => {
-            // Risk zone polygons (Sindh coast)
-            map.addSource('risk-zones', {
-                type: 'geojson',
-                data: {
-                    type: 'FeatureCollection',
-                    features: [
-                        { type: 'Feature', geometry: { type: 'Polygon', coordinates: [[[67.0,24.5],[68.2,24.5],[68.2,25.1],[67.0,25.1]]] }, properties: { risk: 'high', name: 'Karachi Coast' } }
-                    ]
-                }
-            });
-            
-            map.addLayer({ id: 'risk-fill', type: 'fill', source: 'risk-zones', 
-                paint: { 'fill-color': ['match', ['get', 'risk'], 'high', '#ff4444aa', '#ffaa00aa'], 'fill-opacity': 0.6 } 
-            });
-            
-            updateStory(2030);
-            setTimeout(initDeck, 1000);
-        });
-
-        // Sync map/deck
-        map.on('move', () => {
-            if(deckInstance) deckInstance.setProps({ viewState: map.getCenter() });
-        });
+        
+        // Initialize
+        updateStory(2030);
+        
+        // Fly to Sindh coast
+        map.flyTo([24.9, 67.8], 11, { duration: 2, pitch: 0 });
     </script>
 </body>
 </html>
