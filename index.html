@@ -1,67 +1,105 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Sindh Flood Risk Zones (2030-2050)</title>
-  <!-- Leaflet CSS and JS -->
-  <link
-    rel="stylesheet"
-    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-  />
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <link
-    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap"
-    rel="stylesheet"
-  />
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-    body {
-      font-family: "Inter", sans-serif;
-      background: #0a0e2a;
-      color: white;
-      overflow: hidden;
-      height: 100vh;
-    }
-    #map {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      z-index: 1;
-    }
-    /* Main Title Top Center */
-    .main-title {
-      position: absolute;
-      top: 30px;
-      left: 50%;
-      transform: translateX(-50%);
-      z-index: 1000;
-      font-size: 36px;
-      font-weight: 700;
-      text-align: center;
-      background: linear-gradient(135deg, #ff6b6b, #4ecdc4);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      text-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
-    }
-    /* Slider - Bottom Center */
-    .slider-panel {
-      position: absolute;
-      bottom: 30px;
-      left: 50%;
-      transform: translateX(-50%);
-      z-index: 1000;
-      background: rgba(15, 20, 40, 0.98);
-      backdrop-filter: blur(20px);
-      border-radius: 24px;
-      padding: 25px 35px;
-      min-width: 380px;
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      box-shadow: 0 32px 64px rgba(0, 0, 0, 0.4);
-      opacity
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sindh Flood Risk Zones (2030-2050)</title>
+    
+    <!-- Leaflet -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html, body { 
+            height: 100%; overflow: hidden; 
+            font-family: 'Inter', sans-serif; 
+            background: #0a0e2a; color: white;
+        }
+        #map { 
+            height: 100vh; width: 100%; position: relative; z-index: 1; 
+        }
+        
+        /* Title - Top Center */
+        .main-title {
+            position: absolute; top: 20px; left: 50%; transform: translateX(-50%);
+            z-index: 1000; font-size: 28px; font-weight: 700; text-align: center;
+            background: linear-gradient(135deg, #ff6b6b, #4ecdc4); 
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.5);
+        }
+        
+        /* Slider - Bottom Center */
+        .slider-panel {
+            position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%);
+            z-index: 1000; background: rgba(15,20,40,0.98); backdrop-filter: blur(20px);
+            border-radius: 20px; padding: 20px 30px; min-width: 350px; max-width: 90vw;
+            border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+        }
+        .year-display { 
+            font-size: 24px; font-weight: 700; text-align: center; margin-bottom: 15px;
+            background: linear-gradient(135deg,#ff6b6b,#4ecdc4); 
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent; 
+        }
+        .metrics-grid { 
+            display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 15px; 
+        }
+        .metric-card { 
+            background: rgba(255,255,255,0.1); padding: 12px; border-radius: 10px; 
+            text-align: center; backdrop-filter: blur(10px); 
+        }
+        .metric-value { font-size: 20px; font-weight: 700; margin-bottom: 4px; }
+        .metric-label { font-size: 11px; opacity: 0.9; }
+        .slider { 
+            width: 100%; height: 6px; border-radius: 3px; background: rgba(255,255,255,0.2); 
+            outline: none; appearance: none; margin: 15px 0; 
+        }
+        .slider::-webkit-slider-thumb { 
+            appearance: none; width: 24px; height: 24px; border-radius: 50%; 
+            background: linear-gradient(135deg,#ff6b6b,#4ecdc4); cursor: pointer; 
+            box-shadow: 0 3px 8px rgba(255,107,107,0.4); 
+        }
+        
+        /* Year Selection - Bottom Right */
+        .year-toggle {
+            position: absolute; bottom: 20px; right: 20px; z-index: 1000;
+            background: rgba(15,20,40,0.98); backdrop-filter: blur(20px);
+            border-radius: 16px; padding: 18px; min-width: 180px;
+            border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+        }
+        .year-toggle h4 { margin-bottom: 12px; font-size: 14px; text-align: center; opacity: 0.9; }
+        .year-btn {
+            display: block; width: 100%; background: rgba(255,255,255,0.1); 
+            color: white; border: none; padding: 10px; margin: 5px 0;
+            border-radius: 10px; cursor: pointer; font-size: 13px; transition: all 0.3s;
+            font-family: 'Inter', sans-serif;
+        }
+        .year-btn.active, .year-btn:hover { 
+            background: linear-gradient(135deg,#ff6b6b,#4ecdc4); box-shadow: 0 4px 15px rgba(255,107,107,0.4);
+        }
+        
+        /* Leaflet Controls */
+        .leaflet-top.leaflet-right { top: 60px !important; }
+        .leaflet-control-layers { 
+            box-shadow: 0 4px 20px rgba(0,0,0,0.4) !important; 
+            border-radius: 12px !important; background: rgba(20,25,45,0.98) !important;
+            backdrop-filter: blur(15px) !important; border: 1px solid rgba(255,255,255,0.1) !important;
+        }
+        .leaflet-control-layers label { 
+            color: white !important; font-family: 'Inter', sans-serif !important; 
+            font-size: 13px !important; padding: 6px 10px !important;
+        }
+        
+        /* Beige Popups */
+        .leaflet-popup-content-wrapper {
+            background: linear-gradient(135deg, #f5f5dc, #e8d9b8) !important;
+            border-radius: 12px !important; border: 2px solid #d4c7a0 !important;
+            box-shadow: 0 6px 25px rgba(0,0,0,0.3) !important;
+        }
+        .leaflet-popup-content {
+            margin: 10px 14px !important; font-family: 'Inter', sans-serif !important;
+            font-size: 13px !important; line-height: 1.4 !important; color: #4a3f2a !important;
+            text-align: center !important;
+        }
+        .leaflet-popup-tip { background: #d4c7a0 !important; }
