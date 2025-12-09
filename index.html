@@ -131,6 +131,7 @@
             .story-panel { padding: 40px 20px; }
             .story-panel h2 { font-size: 36px; } .story-panel p { font-size: 18px; }
             .sidebar { left: -100%; width: 100%; }
+            .slider-panel{height: 150px}
         }
     </style>
 </head>
@@ -206,7 +207,7 @@
     
     <!-- HERO: 2023 SINDH FLOODS -->
     <div class="hero" onclick="startStory()">
-        <h1>2023 Sindh Floods</h1>
+        <h1>2022 Sindh Floods</h1>
         <div class="hero-subtitle">12.3M affected • 1,000+ lives lost • Sindh worst-hit</div>
         <div class="hero-stats">
             <div class="hero-stat"><div>12.3M</div><div class="hero-label">People Affected</div></div>
@@ -255,7 +256,7 @@
     </div>
 
     <!-- CONTROLS -->
-    <div class="slider-panel" style={height: 150px}>
+    <div class="slider-panel">
         <div class="year-display" id="current-year">2030</div>
         <input type="range" id="year-slider" class="slider" min="2030" max="2050" step="10" value="2030">
         <div class="metrics-grid">
