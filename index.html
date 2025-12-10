@@ -102,7 +102,7 @@
             backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.15); 
             box-shadow: 0 20px 40px rgba(0,0,0,0.5); border-radius: 20px; padding: 20px;
         }
-        .slider-panel { bottom: 30px; left: 50%; transform: translateX(-50%); min-width: 380px; }
+        .slider-panel { right: 0; margin-right: 22px; transform: translateX(-50%); min-width: 380px; height: 220px;}
         .year-toggle { bottom: 30px; right: 30px; width: 200px; }
         .legend { top: 30px; right: 30px; min-width: 180px; }
         
@@ -125,11 +125,11 @@
             color: #fff;
         }
         .slider-panel {
-    position: fixed; bottom: 50%; right: 0; transform: translateY(-50%);
+    position: fixed; top: 50%; right: 0%; transform: translateY(-50%);
     z-index: 1100; background: rgba(15,20,40,0.98); backdrop-filter: blur(20px);
     border: 1px solid rgba(255,255,255,0.15); box-shadow: 0 20px 40px rgba(0,0,0,0.5);
     border-radius: 20px; padding: 25px; 
-    min-width: 360px; max-width: 90vw; width: 380px;
+    min-width: 18rem; max-width: 90vw; width: 380px;
 }
 
 .year-display { 
@@ -179,7 +179,7 @@
 }
 
 .slider {
-    width: 100%; height: 8px; border-radius: 4px; 
+    width: 100%; height: 6px; border-radius: 4px; 
     background: rgba(255,255,255,0.2); outline: none; margin: 15px 0;
     -webkit-appearance: none;
 }
