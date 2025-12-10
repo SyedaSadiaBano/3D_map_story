@@ -125,7 +125,7 @@
             color: #fff;
         }
         .slider-panel {
-    position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%);
+    position: fixed; bottom: 50%; right: 0; transform: translateY(-50%);
     z-index: 1100; background: rgba(15,20,40,0.98); backdrop-filter: blur(20px);
     border: 1px solid rgba(255,255,255,0.15); box-shadow: 0 20px 40px rgba(0,0,0,0.5);
     border-radius: 20px; padding: 25px; 
@@ -162,7 +162,7 @@
 @media (max-width: 820px) {
     .slider-panel {
         min-width: 320px; width: 85vw; padding: 20px;
-        bottom: 20px; left: 50%; transform: translateX(-50%);
+        top: 50%; right: 0; transform: translateY(-50%);
     }
     
     .year-display { font-size: 20px; margin-bottom: 12px; }
@@ -203,7 +203,6 @@
             .story-panel { padding: 40px 20px; }
             .story-panel h2 { font-size: 36px; } .story-panel p { font-size: 18px; }
             .sidebar { left: -100%; width: 100%; }
-            .slider-panel{height: 150px}
         }
     </style>
 </head>
@@ -328,7 +327,7 @@
     </div>
 
     <!-- CONTROLS -->
-    <div class="slider-panel" style= {height: 150px;}>
+    <div class="slider-panel">
         <div class="year-display" id="current-year">2030</div>
         <input type="range" id="year-slider" class="slider" min="2030" max="2050" step="10" value="2030">
         <div class="metrics-grid">
